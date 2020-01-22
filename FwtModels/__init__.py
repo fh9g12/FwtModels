@@ -1,1 +1,1 @@
-import AssumedShape as AssumedShape
+from . import AssumedShape
