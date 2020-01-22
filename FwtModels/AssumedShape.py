@@ -6,6 +6,7 @@ from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.utilities.codegen import codegen
 from sympy.utilities.autowrap import autowrap
 from dataclasses import dataclass, InitVar, field
+from sympy.abc import x,y,t
 
 
 class FwtVariable(sym.Symbol):
@@ -97,40 +98,35 @@ class SymbolicModel:
     2. TransformationMatrix - a transformation matrix from q to (z_w,alpha_w,z_t,alpha_t)
     """
 
-    def __init__(self,generalisedCoords):
+    def __init__(self,generalisedCoords,z_w,alpha_w,z_t,alpha_t,FwtParameters):
 
         # properties of main wing
-        self._m_w, self._m_t, self._x_f, self._s_w, self._s_t = sym.symbols('m_w m_t x_f s_w s_t')
-        self._Lambda, self._c, self._EI, self._GJ, self._g, self._k_theta = sym.symbols('Lambda c EI GJ g k_theta')
-        self._rho, self._V, self._a_w, self._a_t, self._alpha_0, self._e = sym.symbols('rho V a_w a_t alpha_0 e ')
-        self._Malphadot = sym.symbols('M_alphadot')
+        #self._m_w, self._m_t, self._x_f, self._s_w, self._s_t = sym.symbols('m_w m_t x_f s_w s_t')
+        #self._Lambda, self._c, self._EI, self._GJ, self._g, self._k_theta = sym.symbols('Lambda c EI GJ g k_theta')
+        #self._rho, self._V, self._a_w, self._a_t, self._alpha_0, self._e = sym.symbols('rho V a_w a_t alpha_0 e ')
+        #self._Malphadot = sym.symbols('M_alphadot')
 
-        self._x, self._y, self._t = sym.symbols('x y t')
+        self.p = FwtParameters
         # symbols for aero forces       
         self._w_g, self._alpha = me.dynamicsymbols('w_g alpha')
-
-        self._extraTerms = sym.Matrix([self._alpha_0,self._w_g])
+        self._extraTerms = sym.Matrix([self.p.alpha_0,self._w_g])
 
         # create generalised coordinates
-        self._a, self._b, self._theta = me.dynamicsymbols('a b theta')
+        #self._a, self._b, self._theta = me.dynamicsymbols('a b theta')
         me.mechanics_printing()
 
-        self.q = sym.Matrix([self._a,self._b,self._theta])
-        self.qd = self.q.diff(self._t)
-        self.qdd = self.qd.diff(self._t)
+        self.q = generalisedCoords
+        self.qd = self.q.diff(t)
+        self.qdd = self.qd.diff(t)
 
-        # Define shape functions
-        # self.z_w = self._a*self._y**2+self._b*(self._x-self._x_f)*self._y
-        # self.alpha_w = self._b*self._y
-        self.z_w = self._a*self._y**2/self._s_w**2##+self._b*(self._x-self._x_f)*self._y
-        self.alpha_w = sym.Rational(0,1)
-
-        self.z_t = self.z_w.subs(self._y,self._s_w) + self._theta*(self._y)
-        self.alpha_t = self.alpha_w.subs(self._y,self._s_w) + self._theta*sym.sin(self._Lambda)
+        self.z_w = z_w
+        self.alpha_w = alpha_w
+        self.z_t = z_t
+        self.alpha_t = alpha_t
 
         # shape functions on the flexural axis (for aero forces)
-        self.kappa_w = self.z_w.subs(self._x,self._x_f)
-        self.kappa_t = self.z_t.subs(self._x,self._x_f)
+        self.kappa_w = self.z_w.subs(x,self.p.x_f)
+        self.kappa_t = self.z_t.subs(x,self.p.x_f)
 
     def GenerateEoM(self):
         """ Generates the EoM for the system"""
@@ -140,7 +136,7 @@ class SymbolicModel:
         L = sym.Matrix([T-U])
 
         # solve lagrangian (LHS)
-        term_1 = L.jacobian(self.qd).diff(self._t).T
+        term_1 = L.jacobian(self.qd).diff(t).T
         term_2 = L.jacobian(self.q).T
         LHS = term_1-term_2
 
@@ -165,11 +161,11 @@ class SymbolicModel:
 
         # Calculate external forces on the main wing
         # Calc forces on main wing (-1/2 as lift acts in oppisite direction to z axis)
-        dL_w = sym.Rational(-1,2)*self._rho*self._V**2*self._c*self._a_w*(self.alpha_w + self.kappa_w.diff(self._t)/self._V+self._alpha_0+self._w_g/self._V)
-        dM_w = sym.Rational(1,2)*self._rho*self._V**2*self._c**2*(self._e*self._a_w*(self.alpha_w + self.kappa_w.diff(self._t)/self._V+self._alpha_0)+self._Malphadot*self.alpha_w.diff(self._t)*self._c/(4*self._V)+self._w_g/self._V)
+        dL_w = sym.Rational(-1,2)*self.p.rho*self.p.V**2*self.p.c*self.p.a_w*(self.alpha_w + self.kappa_w.diff(t)/self.p.V+self.p.alpha_0+self._w_g/self.p.V)
+        dM_w = sym.Rational(1,2)*self.p.rho*self.p.V**2*self.p.c**2*(self.p.e*self.p.a_w*(self.alpha_w + self.kappa_w.diff(t)/self.p.V+self.p.alpha_0)+self.p.Malphadot*self.alpha_w.diff(t)*self.p.c/(4*self.p.V)+self._w_g/self.p.V)
 
-        Q = (sym.Matrix([self.kappa_w]).jacobian(self.q).T*dL_w).integrate((self._y,0,self._s_w))
-        Q = Q + (sym.Matrix([self.alpha_w]).jacobian(self.q).T*dM_w).integrate((self._y,0,self._s_w))
+        Q = (sym.Matrix([self.kappa_w]).jacobian(self.q).T*dL_w).integrate((y,0,self.p.s_w))
+        Q = Q + (sym.Matrix([self.alpha_w]).jacobian(self.q).T*dM_w).integrate((y,0,self.p.s_w))
 
         # get the B, C & G matrices
         return self.DecomposeQ(Q)
@@ -179,11 +175,11 @@ class SymbolicModel:
 
         # Calculate external forces on the main wing
         # Calc forces on main wing (-1/2 as lift acts in oppisite direction to z axis)
-        dL_w = sym.Rational(-1,2)*self._rho*self._V**2*self._c*self._a_t*(self.alpha_t + self.kappa_t.diff(self._t)/self._V+self._alpha_0+self._w_g/self._V)
-        dM_w = sym.Rational(1,2)*self._rho*self._V**2*self._c**2*(self._e*self._a_t*(self.alpha_t + self.kappa_t.diff(self._t)/self._V+self._alpha_0)+self._Malphadot*self.alpha_t.diff(self._t)*self._c/(4*self._V)+self._w_g/self._V)
+        dL_w = sym.Rational(-1,2)*self.p.rho*self.p.V**2*self.p.c*self.p.a_t*(self.alpha_t + self.kappa_t.diff(t)/self.p.V+self.p.alpha_0+self._w_g/self.p.V)
+        dM_w = sym.Rational(1,2)*self.p.rho*self.p.V**2*self.p.c**2*(self.p.e*self.p.a_t*(self.alpha_t + self.kappa_t.diff(t)/self.p.V+self.p.alpha_0)+self.p.Malphadot*self.alpha_t.diff(t)*self.p.c/(4*self.p.V)+self._w_g/self.p.V)
 
-        Q = (sym.Matrix([self.kappa_t]).jacobian(self.q).T*dL_w).integrate((self._y,0,self._s_t))
-        Q = Q + (sym.Matrix([self.alpha_t]).jacobian(self.q).T*dM_w).integrate((self._y,0,self._s_t))
+        Q = (sym.Matrix([self.kappa_t]).jacobian(self.q).T*dL_w).integrate((y,0,self.p.s_t))
+        Q = Q + (sym.Matrix([self.alpha_t]).jacobian(self.q).T*dM_w).integrate((y,0,self.p.s_t))
 
         # get the B, C & G matrices
         return self.DecomposeQ(Q)
@@ -202,31 +198,31 @@ class SymbolicModel:
     def GeneratePotentialEnergy(self):
         """ Returns the symbolic expression the represents the potential energy of the system """
         # potential energy stored in main wing from bend and twisting
-        U = sym.Rational(1,2)*(self.z_w.diff(self._y,self._y)**2*self._EI).integrate((self._y,0,self._s_w))
-        U = U + sym.Rational(1,2)*(self.alpha_w.diff(self._y)**2*self._GJ).integrate((self._y,0,self._s_w))
-        # potential energy stored in hinge spring
-        U = U + sym.Rational(1,2)*self._k_theta*self._theta**2
+        U = sym.Rational(1,2)*(self.z_w.diff(y,y)**2*self.p.EI).integrate((y,0,self.p.s_w))
+        U = U + sym.Rational(1,2)*(self.alpha_w.diff(y)**2*self.p.GJ).integrate((y,0,self.p.s_w))
+        # potential energy stored in hinge spring ( assume last generalised coord in theta)
+        U = U + sym.Rational(1,2)*self.p.k_theta*self.q[-1]**2
 
         # potential energy stored in main wing from gravitational forces
-        U = U + (self.z_w*self._g*self._m_w).integrate((self._x,0,self._c),(self._y,0,self._s_w))
-        U = U + (self.z_t*self._g*self._m_t).integrate((self._x,0,self._c),(self._y,0,self._s_t))
+        U = U + (self.z_w*self.p.g*self.p.m_w).integrate((x,0,self.p.c),(y,0,self.p.s_w))
+        U = U + (self.z_t*self.p.g*self.p.m_t).integrate((x,0,self.p.c),(y,0,self.p.s_t))
         return U
 
     def GenerateKineticEnergy(self):
         """ Returns the symbolic expression the represents the kinetic energy of the system """
-        T = (self.z_w.diff(self._t)**2*sym.Rational(1,2)*self._m_w).integrate((self._x,0,self._c),(self._y,0,self._s_w))
-        T = T + (self.z_t.diff(self._t)**2*sym.Rational(1,2)*self._m_t).integrate((self._x,0,self._c),(self._y,0,self._s_t))
+        T = (self.z_w.diff(t)**2*sym.Rational(1,2)*self.p.m_w).integrate((x,0,self.p.c),(y,0,self.p.s_w))
+        T = T + (self.z_t.diff(t)**2*sym.Rational(1,2)*self.p.m_t).integrate((x,0,self.p.c),(y,0,self.p.s_t))
         return T
 
-    def createNumericInstance(self,FwtParams : FwtParameters):
-        variables = (self._m_w,self._m_t,self._x_f,self._s_w,self._s_t,self._c,self._Lambda,self._EI,self._GJ,self._k_theta,self._rho,self._V,self._a_w,self._a_t,self._alpha_0,self._e,self._Malphadot,self._g)
+    def createNumericInstance(self):
+        variables = self.p.GetTuple()
         M_eq = sym.lambdify(variables,self.M)
         K_eq = sym.lambdify(variables,self.K)
         B_eq = sym.lambdify(variables,sym.simplify(self.B_w+self.B_t))
         C_eq = sym.lambdify(variables,sym.simplify(self.C_w+self.C_t))
         G_eq = sym.lambdify(variables,sym.simplify(self.G_w+self.G_t))
 
-        vals = FwtParams.GetTuple()
+        vals = tuple(map(lambda x:x.value,variables))
 
-        return NumericModel(M_eq(*vals),K_eq(*vals),B_eq(*vals),C_eq(*vals),G_eq(*vals),FwtParams)
+        return NumericModel(M_eq(*vals),K_eq(*vals),B_eq(*vals),C_eq(*vals),G_eq(*vals),self.p)
 
