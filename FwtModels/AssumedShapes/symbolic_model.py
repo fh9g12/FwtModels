@@ -30,7 +30,7 @@ class SymbolicModel:
     def __init__(self,generalisedCoords,z_w,alpha_w,z_t,alpha_t,FwtParams,
             thetaIndex = None):
         self.p = FwtParams
-        self.thetaIndex = None
+        self.thetaIndex = thetaIndex
         # symbols for aero forces       
         self._w_g, self._alpha = me.dynamicsymbols('w_g alpha')
         self._extraTerms = sym.Matrix([self.p.alpha_0,self._w_g])
@@ -70,9 +70,6 @@ class SymbolicModel:
         z_t = z_w.subs(y,p.s_w) + z_w.diff(y).subs(y,p.s_w)*y
         alpha_t = sym.Rational(0,1)
         return cls(q,z_w,alpha_w,z_t,alpha_t,p)
-
-
-
 
     def Z(self,qs,xVal,yVals):
         # sub in all the variables to z and alpha eqns
@@ -232,11 +229,23 @@ class SymbolicModel:
         return T
 
     def createNumericInstance(self, subs = None):
+        """Method to create a simplified instance of the EoM:
+        Inputs:
+        Subs - a tuple of FwtVariables objects to sub vals for.
+            If it is none (default) all FwtVariable in the local FwtParameters 
+            instance will be substitued in the equations
+            If it is provided only these variables will be substitued. 
+            Allows parameter sweeps to be completed.
+          """
         if subs is None:
             variables = self.p.GetTuple()
         else:
             variables = subs
+        # v is passed to lambdify to use the version of the sqrt method that 
+        # returns complex numbers
         v = [{'sqrt':np.lib.scimath.sqrt},'numpy']
+
+        # create a function for each symbolic matrix stored in this instance
         M_eq = sym.lambdify(variables,self.M,v)
         K_eq = sym.lambdify(variables,self.K,v)
         B_eq = sym.lambdify(variables,sym.simplify(self.B_w+self.B_t),v)
@@ -254,8 +263,11 @@ class SymbolicModel:
         Alpha_eq = lambda qs,xs,ys : np.where(ys<=self.p.s_w.value,
                                         alpha_wEq(qs,xs,ys),alpha_tEq(qs,xs,ys))
 
+        # create a tuple of values to pass to the functions generated above
         vals = tuple(map(lambda x:x.value,variables))
 
+        # return a NumericModel instance, passing in numeric matrices created 
+        # from the functions generated above 
         return NumericModel(M_eq(*vals),K_eq(*vals),B_eq(*vals),C_eq(*vals),
                     G_eq(*vals),Z_eq,Alpha_eq,self.p)
 
