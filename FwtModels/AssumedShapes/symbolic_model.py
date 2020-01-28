@@ -47,11 +47,10 @@ class SymbolicModel:
         self.z_t = z_t
         self.alpha_t = alpha_t
 
-        # shape functions on the flexural axis (for aero forces)
+        # shape functions on the flexural axis 
+        # (for aero forces and bending energy)
         self.kappa_w = self.z_w.subs(x,self.p.x_f)
         self.kappa_t = self.z_t.subs(x,self.p.x_f)
-
-        # create lambda equation for each z/alpha component
 
     @classmethod
     def B1_T0_RLFwt(cls,FwtParams):
@@ -202,10 +201,10 @@ class SymbolicModel:
         """ Returns the symbolic expression the represents the potential energy
         of the system """
         # potential energy stored in main wing from bend and twisting
-        U = sym.Rational(1,2)*((self.z_w.diff(y,y)**2*self.p.EI)
-            .integrate((y,0,self.p.s_w)).integrate((x,0,self.p.c)))
+        U = sym.Rational(1,2)*((self.kappa_w.diff(y,y)**2*self.p.EI)
+            .integrate((y,0,self.p.s_w))
         U = U + sym.Rational(1,2)*((self.alpha_w.diff(y)**2*self.p.GJ)
-            .integrate((y,0,self.p.s_w)).integrate((x,0,self.p.c)))
+            .integrate((y,0,self.p.s_w))
 
         # potential energy stored in hinge spring ( assume last generalised
         # coord in theta)
