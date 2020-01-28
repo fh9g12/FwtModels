@@ -28,7 +28,7 @@ class NumericModel:
         eVals,eVecs = self.FreeVibrationVals()
 
         # convert vectors into a 2D array and append the Freq's on the front
-        vecs = np.array(eVecs)
+        vecs = np.array(eVecs).T
         data = np.insert(vecs,0,0,axis=1)
         data[:,0] = np.sqrt(np.real(eVals))
 
