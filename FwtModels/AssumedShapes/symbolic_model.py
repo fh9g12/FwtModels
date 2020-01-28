@@ -202,9 +202,9 @@ class SymbolicModel:
         of the system """
         # potential energy stored in main wing from bend and twisting
         U = sym.Rational(1,2)*((self.kappa_w.diff(y,y)**2*self.p.EI)
-            .integrate((y,0,self.p.s_w))
+            .integrate((y,0,self.p.s_w)))
         U = U + sym.Rational(1,2)*((self.alpha_w.diff(y)**2*self.p.GJ)
-            .integrate((y,0,self.p.s_w))
+            .integrate((y,0,self.p.s_w)))
 
         # potential energy stored in hinge spring ( assume last generalised
         # coord in theta)
