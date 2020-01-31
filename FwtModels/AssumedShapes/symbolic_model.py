@@ -197,34 +197,45 @@ class SymbolicModel:
         return (B,C,G)
 
 
-    def GeneratePotentialEnergy(self):
-        """ Returns the symbolic expression the represents the potential energy
-        of the system """
+    def MainWingPotentialEnergy(self):
         # potential energy stored in main wing from bend and twisting
         U = sym.Rational(1,2)*((self.kappa_w.diff(y,y)**2*self.p.EI)
             .integrate((y,0,self.p.s_w)))
         U = U + sym.Rational(1,2)*((self.alpha_w.diff(y)**2*self.p.GJ)
             .integrate((y,0,self.p.s_w)))
+        return U
 
+    def FwtPotentialEnergy(self):
+        U = sym.Integer(0)
         # potential energy stored in hinge spring ( assume last generalised
         # coord in theta)
         if self.thetaIndex is not None:
             U = U + sym.Rational(1,2)*self.p.k_theta*self.q[-1]**2
-
-        # potential energy stored in main wing from gravitational forces
-        U = U + ((self.z_w*self.p.g*self.p.m_w)
-            .integrate((x,0,self.p.c),(y,0,self.p.s_w)))
-        U = U + ((self.z_t*self.p.g*self.p.m_t)
-            .integrate((x,0,self.p.c),(y,0,self.p.s_t)))
         return U
+        
+
+    def GeneratePotentialEnergy(self):
+        """ Returns the symbolic expression the represents the potential energy
+        of the system """
+        U = self.MainWingPotentialEnergy()
+        U = U + self.FwtPotentialEnergy()
+        return U
+
+    def MainWingKineticEnergy(self):
+        T = ((self.z_w.diff(t)**2*sym.Rational(1,2)*self.p.m_w)
+            .integrate((x,0,self.p.c),(y,0,self.p.s_w)))
+        return T
+    
+    def FwtKineticEnergy(self):
+        T = ((self.z_t.diff(t)**2*sym.Rational(1,2)*self.p.m_t)
+            .integrate((x,0,self.p.c),(y,0,self.p.s_t)))
+        return T
 
     def GenerateKineticEnergy(self):
         """ Returns the symbolic expression the represents the kinetic energy 
         of the system """
-        T = ((self.z_w.diff(t)**2*sym.Rational(1,2)*self.p.m_w)
-            .integrate((x,0,self.p.c),(y,0,self.p.s_w)))
-        T = T + ((self.z_t.diff(t)**2*sym.Rational(1,2)*self.p.m_t)
-            .integrate((x,0,self.p.c),(y,0,self.p.s_t)))
+        T = self.MainWingKineticEnergy()
+        T = T + self.FwtKineticEnergy()
         return T
 
     def createNumericInstance(self, subs = None):
