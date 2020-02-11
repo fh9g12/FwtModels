@@ -1,4 +1,4 @@
-from FwtModels import AssumedShape
+from FwtModels import AssumedShapes
 import numpy as np
 import sympy as sym
 import sympy.physics.mechanics as me
