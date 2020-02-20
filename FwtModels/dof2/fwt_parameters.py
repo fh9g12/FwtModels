@@ -10,39 +10,26 @@ class FwtVariable(sym.Symbol):
 
 
 class FwtParameters:
-    m: FwtVariable = FwtVariable(0,'m') # mass of FWT
-    l: FwtVariable = FwtVariable(0,'l') # dist from hinge to CoM
-    s: FwtVariable = FwtVariable(0,'s') # span
-    c: FwtVariable = FwtVariable(0,'c') # chord
-    k: FwtVariable = FwtVariable(0,'k') # spring constant
-    g : FwtVariable = FwtVariable(0,'g') # gravity
-    Lambda: FwtVariable = FwtVariable(0,'Lambda') # flare angle
-    rho: FwtVariable = FwtVariable(0,'rho') # density
-    V: FwtVariable = FwtVariable(0,'V') # velocity
-    a_t : FwtVariable = FwtVariable(0,'a_t') # C_L of FWT
-    alpha_r : FwtVariable = FwtVariable(0,'alpha_r') # C_L of FWT
-      
-    def __init__(self):
-        self.params = []
-        self.params.append(self.m)
-        self.params.append(self.l)
-        self.params.append(self.s)
-        self.params.append(self.c)
-        self.params.append(self.k)
-        self.params.append(self.g)
-        self.params.append(self.Lambda)
-        self.params.append(self.rho)
-        self.params.append(self.V)
-        self.params.append(self.a_t)
 
-    def AddParam(self,value,symString):
-        param = FwtVariable(value,symString)
-        self.params.append(param)
-        return param
+    @classmethod 
+    def Default2DoF(cls):
+        inst = cls()
+        inst.m: FwtVariable = FwtVariable(0,'m') # mass of FWT
+        inst.l: FwtVariable = FwtVariable(0,'l') # dist from hinge to CoM
+        inst.s: FwtVariable = FwtVariable(0,'s') # span
+        inst.c: FwtVariable = FwtVariable(0,'c') # chord
+        inst.k: FwtVariable = FwtVariable(0,'k') # spring constant
+        inst.g : FwtVariable = FwtVariable(0,'g') # gravity
+        inst.Lambda: FwtVariable = FwtVariable(0,'Lambda') # flare angle
+        inst.rho: FwtVariable = FwtVariable(0,'rho') # density
+        inst.V: FwtVariable = FwtVariable(0,'V') # velocity
+        inst.a_t : FwtVariable = FwtVariable(0,'a_t') # C_L of FWT
+        inst.alpha_r : FwtVariable = FwtVariable(0,'alpha_r') # C_L of FWT
+        return inst
     
     def GetTuple(self):
-        return tuple(s for s in self.params)
+        return tuple([v for k, v in vars(self).items() if isinstance(v,sym.Symbol) ])
 
     def GetNumericTuple(self):
-        return tuple(s.value for s in self.params)
+        return tuple([v.value for k, v in vars(self).items() if isinstance(v,sym.Symbol) ])
     
