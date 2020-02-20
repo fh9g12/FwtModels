@@ -28,18 +28,23 @@ class SymbolicModel:
             used in the above expressions)
     """
 
-    def __init__(self,generalisedCoords,U,Elements,FwtParams):
+    def __init__(self,generalisedCoords,U,Elements,FwtParams,ExtForces = None):
 
+        # matrices for generalised coordinates
         self.qs = len(generalisedCoords)
         self.q = sym.Matrix(me.dynamicsymbols(f'q:{self.qs}'))
         self.qd = sym.Matrix(me.dynamicsymbols(f'q:{self.qs}',1))
         self.qdd = sym.Matrix(me.dynamicsymbols(f'q:{self.qs}',2))
 
+        # matrix for forcing terms
+        if ExtForces is not None:
+            self.ExtForces = ExtForces
+            self.F = sym.Matrix(me.dynamicsymbols(f'f:{self.qs}'))
+
         self.p = FwtParams
-        # symbols for aero forces
 
+        # Calc K.E
         self.T = sym.Integer(1)
-
         # add K.E for each Rigid Element
         for ele in Elements:
             T_e = ele.CalcKE(self.q,self.qd)
@@ -51,6 +56,8 @@ class SymbolicModel:
         term_1 = self.Lag.jacobian(self.qd).diff(me.dynamicsymbols._t).T
         term_2 = self.Lag.jacobian(self.q).T
         self.EoM = sym.simplify(term_1-term_2)
+        if ExtForces is not None:
+            self.EoM = self.EoM - self.F
         
         # get equations for each generalised coordinates acceleration
         self.a_eq = sym.linsolve(list(self.EoM[:]),list(self.qdd))
@@ -59,8 +66,10 @@ class SymbolicModel:
         self.funcs = []
         tup = self.p.GetTuple()
         for i in range(0,self.qs):
-            self.funcs.append(sym.lambdify((*tup,self.q,self.qd),self.a_eq.args[0][i]))
-
+            if ExtForces is None:
+                self.funcs.append(sym.lambdify((*tup,self.q,self.qd),self.a_eq.args[0][i]))
+            else:
+                self.funcs.append(sym.lambdify((*tup,self.F,self.q,self.qd),self.a_eq.args[0][i]))
         # calculate U And T eqns
         
         self.u_eqn = sym.lambdify((*tup,self.q,self.qd),self.U)
@@ -77,8 +86,12 @@ class SymbolicModel:
         
         tup = FwtParams.GetNumericTuple()
         for i in range(0,self.qs):
-            result = (result + (y[i*2+1],))            
-            v = self.funcs[i](*tup,qs,qds)              
+            result = (result + (y[i*2+1],))
+            if self.ExtForces is None:
+                v = self.funcs[i](*tup,qs,qds)
+            else:
+                fr = self.ExtForces.Calc(FwtParams,qs,qds,t)
+                v = self.funcs[i](*tup,fr,qs,qds)           
             result = (result + (v,))
         
         return result
