@@ -20,7 +20,7 @@ class RigidElement:
     def PointMass(cls, Transform,Rotations,m):
         return cls(Transform,Rotations,MassMatrix(m))
 
-    def CalcKE(self, q, qd):
+    def Jacobian(self,q):
         # create the jacobian for the mass
         J_xyz = self.Transform.Transform_point([0,0,0]).jacobian(q)
         # get jacobian of rotations
@@ -30,6 +30,13 @@ class RigidElement:
         J=sym.zeros(6,len(q))
         J[:3,:] = J_xyz
         J[3:,:] = J_r
+
+        return J
+
+
+    def CalcKE(self, q, qd):
+        # create the jacobian for the mass
+        J = self.Jacobian(q)
 
         #get M in world frame
         #calculate the mass Matrix
