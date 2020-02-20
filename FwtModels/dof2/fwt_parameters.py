@@ -20,6 +20,7 @@ class FwtParameters:
     rho: FwtVariable = FwtVariable(0,'rho') # density
     V: FwtVariable = FwtVariable(0,'V') # velocity
     a_t : FwtVariable = FwtVariable(0,'a_t') # C_L of FWT
+    alpha_r : FwtVariable = FwtVariable(0,'alpha_r') # C_L of FWT
       
     def __init__(self):
         self.params = []
