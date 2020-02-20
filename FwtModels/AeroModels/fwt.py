@@ -15,11 +15,21 @@ class SimpleAeroModel:
         half = sym.Rational(1,2)
 
         self.dAlpha = sym.atan(sym.sin(q[0]-sym.pi*half)*sym.sin(p.Lambda))
+
+        thet = q[0]-sym.pi*sym.Rational(1,2)
+        stheta = sym.sin(thet)
+        ctheta = sym.cos(thet)
+        sLambda = sym.sin(p.Lambda)
+        n = _alpha_r*ctheta+sLambda*stheta
+        d = _alpha_r*sLambda*stheta-sLambda**2*ctheta+sLambda**2-1
+        self.dAlpha = sym.atan(n/d)
+
         self.dAlpha = self.dAlpha - ((p.s*half*qd[0]+qd[0]*y_f))/V_t
         self.dAlpha = self.dAlpha - (qd[1]*sym.sin(q[0]))/V_t
-        self.dAlpha = self.dAlpha + _alpha_r*sym.cos(q[0]-sym.pi*half)
+        #self.dAlpha = self.dAlpha + _alpha_r*sym.cos(q[0]-sym.pi*half)
         self.dL_w = half*p.rho*V_t**2*p.c*p.a_t*self.dAlpha
-        self.dL_w = self.dL_w*sym.cos(self.dAlpha.subs(y_f,0))
+
+        #self.dL_w = self.dL_w*sym.cos(self.dAlpha.subs(y_f,0))
         #jacobian per unit length of FWT
         dr_idq_j= Transform.Transform_point([0,y_f,0]).jacobian(q)
 
