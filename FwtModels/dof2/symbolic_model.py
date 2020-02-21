@@ -36,8 +36,6 @@ class SymbolicModel:
             self.ExtForces = ExtForces
             self.F = sym.Matrix(me.dynamicsymbols(f'f:{p.qs}'))
 
-        
-
         # Calc K.E
         self.T = sym.Integer(1)
         # add K.E for each Rigid Element
@@ -62,55 +60,40 @@ class SymbolicModel:
         tup = p.GetTuple()
         for i in range(0,p.qs):
             if ExtForces is None:
-                self.funcs.append(sym.lambdify((*tup,p.q,p.qd),self.a_eq.args[0][i]))
+                self.funcs.append(sym.lambdify((*tup,p.x),self.a_eq.args[0][i]))
             else:
-                self.funcs.append(sym.lambdify((*tup,self.F,p.q,p.qd),self.a_eq.args[0][i]))
+                self.funcs.append(sym.lambdify((*tup,self.F,p.x),self.a_eq.args[0][i]))
         # calculate U And T eqns
         
-        self.u_eqn = sym.lambdify((*tup,p.q,p.qd),self.U)
+        self.u_eqn = sym.lambdify((*tup,p.x),self.U)
 
-        self.t_eqn = sym.lambdify((*tup,p.q,p.qd),self.T)
+        self.t_eqn = sym.lambdify((*tup,p.x),self.T)
     
-    def deriv(self,t,y,FwtParams):
+    def deriv(self,t,x,FwtParams):
         p=FwtParams
         result = ()
-        qs=[]
-        qds=[]
-        for i in range(0,p.qs):
-            qs.append(y[i*2])
-            qds.append(y[i*2+1])
         
         tup = FwtParams.GetNumericTuple()
         for i in range(0,p.qs):
-            result = (result + (y[i*2+1],))
+            result = (result + (x[i*2+1],))
             if self.ExtForces is None:
-                v = self.funcs[i](*tup,qs,qds)
+                v = self.funcs[i](*tup,x)
             else:
-                fr = self.ExtForces.Calc(FwtParams,qs,qds,t)
-                v = self.funcs[i](*tup,fr,qs,qds)           
+                fr = self.ExtForces.Calc(FwtParams,x,t)
+                v = self.funcs[i](*tup,fr,x)           
             result = (result + (v,))
         
         return result
     
     #calculate the total energy in the system
-    def KineticEnergy(self,y,FwtParams):
-        qs,qds = self._getStates(y)
+    def KineticEnergy(self,x,FwtParams):
         tup = FwtParams.GetNumericTuple()
-        return self.t_eqn(*tup,qs,qds)
+        return self.t_eqn(*tup,x)
 
-    def PotentialEnergy(self,y,FwtParams):
-        qs,qds = self._getStates(y)
+    def PotentialEnergy(self,x,FwtParams):
         tup = FwtParams.GetNumericTuple()
-        return self.u_eqn(*tup,qs,qds)
+        return self.u_eqn(*tup,x)
 
-    def Energy(self,y,FwtParams):
-        return self.KineticEnergy(y,FwtParams) + self.PotentialEnergy(y,FwtParams)
-
-    def _getStates(self,y):
-        qs=[]
-        qds=[]
-        for i in range(0,round(len(y)/2)):
-            qs.append(y[i*2])
-            qds.append(y[i*2+1])
-        return qs,qds
-
+    def Energy(self,x,FwtParams):
+        return self.KineticEnergy(x,FwtParams) + \
+                self.PotentialEnergy(x,FwtParams)

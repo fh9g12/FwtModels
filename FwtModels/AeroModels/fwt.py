@@ -55,21 +55,21 @@ class SimpleAeroModel:
 
     def GenerateLambdas(self,FwtParams):
         tup = FwtParams.GetTuple()
-        q_func = sym.lambdify((*tup,self._alpha_r, self.V_t,FwtParams.q,FwtParams.qd),self.Q)
-        dAlpha_func = sym.lambdify((*tup,self._alpha_r, self.V_t,self.y_t,FwtParams.q,FwtParams.qd),self.dAlpha)
+        q_func = sym.lambdify((*tup,self._alpha_r, self.V_t,FwtParams.x),self.Q)
+        dAlpha_func = sym.lambdify((*tup,self._alpha_r, self.V_t,self.y_t,FwtParams.x),self.dAlpha)
         return q_func,dAlpha_func
 
     def SetFuncs(self,FwtParams,V_Fuc,a_r_func):
         self._v_func = V_Fuc
         self._ar_func = a_r_func
 
-    def GetAlpha(self,FwtParams,q,qd,y_t,t):
+    def GetAlpha(self,FwtParams,x,y_t,t):
         tup = FwtParams.GetNumericTuple()
-        return self.dAlpha_func(*tup,self._ar_func(t),self._v_func(t),y_t,q,qd)
+        return self.dAlpha_func(*tup,self._ar_func(t),self._v_func(t),y_t,x)
 
-    def Calc(self,FwtParams,q,qd,t):
+    def Calc(self,FwtParams,x,t):
         tup = FwtParams.GetNumericTuple()
-        return self.q_func(*tup,self._ar_func(t),self._v_func(t),q,qd)
+        return self.q_func(*tup,self._ar_func(t),self._v_func(t),x)
 
 
 
