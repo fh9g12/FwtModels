@@ -28,13 +28,14 @@ class SymbolicModel:
             used in the above expressions)
     """
 
-    def __init__(self,U,Elements,FwtParams,ExtForces = None):
+    def __init__(self,U,Elements,FwtParams, ExtForces = None):
         p = FwtParams
 
         # matrix for forcing terms
-        if ExtForces is not None:
-            self.ExtForces = ExtForces
-            self.F = sym.Matrix(me.dynamicsymbols(f'f:{p.qs}'))
+        # if ExtForces is not None:
+        #     self.ExtForces = ExtForces
+        
+        self.F = sym.Matrix(me.dynamicsymbols(f'f:{p.qs}'))
 
         # Calc K.E
         self.T = sym.Integer(1)
@@ -49,41 +50,40 @@ class SymbolicModel:
         term_1 = self.Lag.jacobian(p.qd).diff(me.dynamicsymbols._t).T
         term_2 = self.Lag.jacobian(p.q).T
         self.EoM = sym.simplify(term_1-term_2)
-        if ExtForces is not None:
-            self.EoM = self.EoM - self.F
+
+        # add exteral forces to EoM
+        self.EoM = self.EoM - self.F
         
         # get equations for each generalised coordinates acceleration
         self.a_eq = sym.linsolve(list(self.EoM[:]),list(p.qdd))
 
         # create func for each eqn (param + state then derivative as inputs)
-        self.funcs = []
-        tup = p.GetTuple()
+        state_vc = []
         for i in range(0,p.qs):
-            if ExtForces is None:
-                self.funcs.append(sym.lambdify((*tup,p.x),self.a_eq.args[0][i]))
-            else:
-                self.funcs.append(sym.lambdify((*tup,self.F,p.x),self.a_eq.args[0][i]))
-        # calculate U And T eqns
+            state_vc.append(p.qd[i])
+            state_vc.append(self.a_eq.args[0][i])
+        self.X = sym.Matrix(state_vc)
         
+        tup = p.GetTuple()
+        
+        #state vector function
+        self.X_func = sym.lambdify((*tup,self.F,p.x),self.X)
+        # potential energy function
         self.u_eqn = sym.lambdify((*tup,p.x),self.U)
-
+        # kinetic energy function
         self.t_eqn = sym.lambdify((*tup,p.x),self.T)
+
+        # set external force function
+        if ExtForces == None:
+            self.__fr = lambda p,x,t:[0]*p.qs
+        else:
+            self.__fr = ExtForces
+
     
     def deriv(self,t,x,FwtParams):
         p=FwtParams
-        result = ()
-        
         tup = FwtParams.GetNumericTuple()
-        for i in range(0,p.qs):
-            result = (result + (x[i*2+1],))
-            if self.ExtForces is None:
-                v = self.funcs[i](*tup,x)
-            else:
-                fr = self.ExtForces.Calc(FwtParams,x,t)
-                v = self.funcs[i](*tup,fr,x)           
-            result = (result + (v,))
-        
-        return result
+        return tuple(i[0] for i in self.X_func(*tup,self.__fr(p,x,t),x))
     
     #calculate the total energy in the system
     def KineticEnergy(self,x,FwtParams):

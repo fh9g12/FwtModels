@@ -42,7 +42,7 @@ class SimpleAeroModel:
         self.dL_wi = Transform.T[:3,:3]*sym.Matrix([0,0,self.dL_w])
 
         # generalised force per unit length
-        self.dQ = dr_idq_j.T*self.dL_wi
+        self.dQ = (dr_idq_j.T*self.dL_wi)
 
         # generalised force
         self.Q = self.dQ.integrate((self.y_t,0,p.s))
@@ -67,9 +67,10 @@ class SimpleAeroModel:
         tup = FwtParams.GetNumericTuple()
         return self.dAlpha_func(*tup,self._ar_func(t),self._v_func(t),y_t,x)
 
-    def Calc(self,FwtParams,x,t):
+    def __call__(self,FwtParams,x,t):
         tup = FwtParams.GetNumericTuple()
-        return self.q_func(*tup,self._ar_func(t),self._v_func(t),x)
+        return self.q_func(*tup,self._ar_func(t),self._v_func(t),x)[:,0]
+
 
 
 
