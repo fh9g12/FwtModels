@@ -10,6 +10,12 @@ class SimpleAeroModel:
         # symbol for y of FWT
         y_t = sym.Symbol('y_t')
 
+        # set a_t mode
+        if at_mode == 1:
+            C_L_expr = p.a_t - p.a_t*y_t/p.s
+        else:
+            C_L_expr = p.a_t
+
         # aero focre equation
         _alpha_r, V_t = me.dynamicsymbols('alpha_r V_t')
         half = sym.Rational(1,2)
@@ -26,7 +32,7 @@ class SimpleAeroModel:
 
         self.dAlpha = self.dAlpha - qd[0]*y_t/V_t
         self.dAlpha = self.dAlpha - (qd[1]*sym.sin(q[0]))/V_t
-        self.dL_w = half*p.rho*V_t**2*p.c*p.a_t*self.dAlpha
+        self.dL_w = half*p.rho*V_t**2*p.c*C_L_expr*self.dAlpha
 
         #self.dL_w = self.dL_w*sym.cos(self.dAlpha.subs(y_f,0))
         #jacobian per unit length of FWT
