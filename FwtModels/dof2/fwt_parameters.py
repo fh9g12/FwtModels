@@ -45,6 +45,10 @@ class FwtParameters:
     def GetTuple(self):
         return tuple([v for k, v in vars(self).items() if isinstance(v,sym.Symbol) ])
 
-    def GetNumericTuple(self):
-        return tuple([v.value for k, v in vars(self).items() if isinstance(v,sym.Symbol) ])
+    def GetNumericTuple(self,x,t):
+        vals = []
+        for _, v in vars(self).items():
+            if isinstance(v,sym.Symbol):
+                vals.append(v.value(t,x) if callable(v.value) else v.value)
+        return tuple(vals)
     

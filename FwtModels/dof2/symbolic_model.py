@@ -65,7 +65,7 @@ class SymbolicModel:
         self.X = sym.Matrix(state_vc)
         
         tup = p.GetTuple()
-        
+
         #state vector function
         self.X_func = sym.lambdify((*tup,self.F,p.x),self.X)
         # potential energy function
@@ -82,18 +82,18 @@ class SymbolicModel:
     
     def deriv(self,t,x,FwtParams):
         p=FwtParams
-        tup = FwtParams.GetNumericTuple()
+        tup = FwtParams.GetNumericTuple(x,t)
         return tuple(i[0] for i in self.X_func(*tup,self.__fr(p,x,t),x))
     
     #calculate the total energy in the system
-    def KineticEnergy(self,x,FwtParams):
-        tup = FwtParams.GetNumericTuple()
+    def KineticEnergy(self,x,FwtParams,t):
+        tup = FwtParams.GetNumericTuple(x,t)
         return self.t_eqn(*tup,x)
 
-    def PotentialEnergy(self,x,FwtParams):
-        tup = FwtParams.GetNumericTuple()
+    def PotentialEnergy(self,x,FwtParams,t):
+        tup = FwtParams.GetNumericTuple(x,t)
         return self.u_eqn(*tup,x)
 
-    def Energy(self,x,FwtParams):
+    def Energy(self,x,FwtParams,t):
         return self.KineticEnergy(x,FwtParams) + \
                 self.PotentialEnergy(x,FwtParams)
