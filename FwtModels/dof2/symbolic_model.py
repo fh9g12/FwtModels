@@ -95,5 +95,50 @@ class SymbolicModel:
         return self.u_eqn(*tup,x)
 
     def Energy(self,x,FwtParams,t):
-        return self.KineticEnergy(x,FwtParams) + \
-                self.PotentialEnergy(x,FwtParams)
+        return self.KineticEnergy(x,FwtParams,t) + \
+                self.PotentialEnergy(x,FwtParams,t)
+    
+    def CruiseAngleEqn(self,FwtParams, ExtForces = None):
+        p =FwtParams
+        # get forcing Matrix
+        Q = self.__fr.Q if ExtForces == None else ExtForces.Q
+        #make all velocities zero
+        subs = {p.qd[0]:0,p.qd[1]:0,p.qdd[0]:0,p.qdd[1]:0}
+        X_stationary = self.X.subs(subs)
+        Q_stationary = Q.subs(subs)
+
+        # sub Q into EoM
+        EoM_stationary = X_stationary.subs({self.F[0]:Q_stationary[0],self.F[1]:Q_stationary[1]})
+
+        # sub in all other values apart from V
+        tup = p.GetTuple(ignore=['V'])
+        eqs = sym.simplify(EoM_stationary.subs({v:v.value for v in tup}))[[1,3],:]
+
+        # sub in a replacement for V**2
+        V_sq = sym.Symbol('V_sq')
+        eqs = eqs.subs({p.V**2:V_sq})
+
+        # solve both equations for d so we can eliminate it
+        y1 = sym.solve(eqs[0],p.q[1])[0]
+        y2 = sym.solve(eqs[1],p.q[1])[0]
+
+        # solve for velocity
+        x = sym.solve(y1-y2,V_sq)[0]
+        y = y1.subs(V_sq,x)
+
+        
+        # return the lambdified eqn
+        return sym.lambdify((p.q[0]),[sym.sqrt(x),y])
+
+
+
+
+
+
+
+
+
+
+
+
+

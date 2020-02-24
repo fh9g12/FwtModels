@@ -42,13 +42,13 @@ class FwtParameters:
         inst.q : sym.Matrix(me.dynamicsymbols(f'q:{2}'))
         return inst
     
-    def GetTuple(self):
-        return tuple([v for k, v in vars(self).items() if isinstance(v,sym.Symbol) ])
+    def GetTuple(self,ignore=[]):
+        return tuple([v for k, v in vars(self).items() if isinstance(v,sym.Symbol) and k not in ignore])
 
-    def GetNumericTuple(self,x,t):
+    def GetNumericTuple(self,x,t,ignore=[]):
         vals = []
-        for _, v in vars(self).items():
-            if isinstance(v,sym.Symbol):
+        for k, v in vars(self).items():
+            if isinstance(v,sym.Symbol) and k not in ignore:
                 vals.append(v.value(t,x) if callable(v.value) else v.value)
         return tuple(vals)
     
