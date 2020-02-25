@@ -237,6 +237,16 @@ class SymbolicModel:
         T = self.MainWingKineticEnergy()
         T = T + self.FwtKineticEnergy()
         return T
+    
+    def PrintEoM(self):
+        ql = vlatex(self.q)
+        qdl = vlatex(self.qd)
+        qddl = vlatex(self.qdd)
+
+        lhs = vlatex(self.M)+qddl+'+'+ vlatex(self.K)+qddl
+        rhs = vlatex(self.B)+qdl+'+'+vlatex(self.C)+ql+'+'\
+            +vlatex(self.G)+vlatex(self._extraTerms)
+        return lhs+'='+rhs
 
     def createNumericInstance(self, subs = None):
         """Method to create a simplified instance of the EoM:
