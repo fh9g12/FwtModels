@@ -17,7 +17,7 @@ class SimpleAeroModel:
             C_L_expr = p.a_t
 
         # aero focre equation
-        foldAngle = p.q[0]-sym.pi*sym.Rational(1,2)
+        foldAngle = p.q[0]
         stheta = sym.sin(foldAngle)
         ctheta = sym.cos(foldAngle)
         sLambda = sym.sin(p.Lambda)
@@ -25,9 +25,9 @@ class SimpleAeroModel:
         d = p.alpha_r*sLambda*stheta-sLambda**2*ctheta+sLambda**2-1
         self.dAlpha = sym.atan(-n/d)
 
-        self.dAlpha = self.dAlpha - p.qd[0]*self.y_t/p.V
-        self.dAlpha = self.dAlpha - (p.qd[1]*sym.sin(p.q[0]))/p.V
-        self.dL_w = sym.Rational(1,2)*p.rho*p.V**2*p.c*C_L_expr*self.dAlpha
+        self.dAlpha = self.dAlpha + p.qd[0]*self.y_t/p.V
+        self.dAlpha = self.dAlpha + (p.qd[1]*sym.cos(p.q[0]))/p.V
+        self.dL_w = -sym.Rational(1,2)*p.rho*p.V**2*p.c*C_L_expr*self.dAlpha
 
         #self.dL_w = self.dL_w*sym.cos(self.dAlpha.subs(y_f,0))
         #jacobian per unit length of FWT
