@@ -52,3 +52,25 @@ def LinearEoM_func(dof2Model,FwtParams,ExtForces,ignore=[]):
 
     # return the function
     return sym.lambdify((*tup,lp),jac)
+
+def GetCruiseConditions(dof2Model,FwtParams,vs,initialGuess):
+    p =FwtParams
+    # data frame to append all results to
+    df = pd.DataFrame(columns=['v','aoa','q'])
+
+    # fro each velocity find the cruise state    
+    for v in vs:
+        p.V.value = v
+        x = minimize(__ToMinimise,[initialGuess],args=(dof2Model,p)).x
+        initialGuess = x
+        df = df.append({'aoa' : p.alpha_r.value, 'v' : v,'q':x} , ignore_index=True)
+    return df
+
+def __ToMinimise(q,dof2Model,p):
+        val = dof2Model.deriv(0,[i for i  in __CreateZeroVelStateIterable(q)],p)
+        return val[1]**2 + val[3]**2
+
+def __CreateZeroVelStateIterable(q):
+    for _q in q:
+        yield _q
+        yield 0
