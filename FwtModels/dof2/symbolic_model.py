@@ -75,15 +75,14 @@ class SymbolicModel:
 
         # set external force function
         if ExtForces == None:
-            self.__fr = lambda p,x,t:[0]*p.qs
+            self.ExtForces = lambda p,x,t:[0]*p.qs
         else:
-            self.__fr = ExtForces
+            self.ExtForces = ExtForces
 
-    
     def deriv(self,t,x,FwtParams):
         p=FwtParams
         tup = FwtParams.GetNumericTuple(x,t)
-        return tuple(i[0] for i in self.X_func(*tup,self.__fr(p,x,t),x))
+        return tuple(i[0] for i in self.X_func(*tup,self.ExtForces(p,x,t),x))
     
     #calculate the total energy in the system
     def KineticEnergy(self,x,FwtParams,t):
@@ -101,7 +100,7 @@ class SymbolicModel:
     def CruiseAngleEqn(self,FwtParams, ExtForces = None):
         p =FwtParams
         # get forcing Matrix
-        Q = self.__fr.Q if ExtForces == None else ExtForces.Q
+        Q = self.ExtForces.Q() if ExtForces == None else ExtForces.Q()
         #make all velocities zero
         subs = {p.qd[0]:0,p.qd[1]:0,p.qdd[0]:0,p.qdd[1]:0}
         X_stationary = self.X.subs(subs)

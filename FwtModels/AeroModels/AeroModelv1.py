@@ -1,7 +1,7 @@
 import sympy as sym
 import sympy.physics.mechanics as me
 
-class SimpleAeroModel:
+class AeroModelv1:
 
     def __init__(self,FwtParams,Transform,at_mode=0):
         p = FwtParams
@@ -40,14 +40,14 @@ class SimpleAeroModel:
         self.dQ = (dr_idq_j.T*self.dL_wi)
 
         # generalised force
-        self.Q = self.dQ.integrate((self.y_t,0,p.s))
+        self._Q = self.dQ.integrate((self.y_t,0,p.s))
 
         #convert into a Lambda function
         self.q_func,self.dAlpha_func = self.GenerateLambdas(p)
 
     def GenerateLambdas(self,FwtParams):
         tup = FwtParams.GetTuple()
-        q_func = sym.lambdify((*tup,FwtParams.x),self.Q)
+        q_func = sym.lambdify((*tup,FwtParams.x),self._Q)
         dAlpha_func = sym.lambdify((*tup,self.y_t,FwtParams.x),self.dAlpha)
         return q_func,dAlpha_func
 
@@ -58,6 +58,9 @@ class SimpleAeroModel:
     def __call__(self,FwtParams,x,t):
         tup = FwtParams.GetNumericTuple(x,t)
         return self.q_func(*tup,x)[:,0]
+
+    def Q(self):
+        return self._Q
 
 
 
