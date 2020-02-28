@@ -24,10 +24,11 @@ def msub(expr,v,sub,derivatives):
     expr = expr.subs({temps[i-1]:derivs[i] for i in range(1,derivatives+1)})
     return expr
 
-def LinearEoM_func(dof2Model,FwtParams,ExtForces,ignore=[]):
+def LinearEoM_func(dof2Model,FwtParams,ExtForces = None,ignore=[]):
     p = FwtParams
     # create complete EoM
-    Q = ExtForces.Q
+    Q = dof2Model.ExtForces.Q() if ExtForces is None else ExtForces.Q()
+
     EoM = dof2Model.X.subs({dof2Model.F[i]:Q[i] for i in range(0,p.qs)})
 
     # sub all in those to ignore
@@ -65,6 +66,9 @@ def GetCruiseConditions(dof2Model,FwtParams,vs,initialGuess):
         initialGuess = x
         df = df.append({'aoa' : p.alpha_r.value, 'v' : v,'q':x} , ignore_index=True)
     return df
+
+
+
 
 def __ToMinimise(q,dof2Model,p):
         val = dof2Model.deriv(0,[i for i  in __CreateZeroVelStateIterable(q)],p)
