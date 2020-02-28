@@ -67,9 +67,6 @@ def GetCruiseConditions(dof2Model,FwtParams,vs,initialGuess):
         df = df.append({'aoa' : p.alpha_r.value, 'v' : v,'q':x} , ignore_index=True)
     return df
 
-
-
-
 def __ToMinimise(q,dof2Model,p):
         val = dof2Model.deriv(0,[i for i  in __CreateZeroVelStateIterable(q)],p)
         return val[1]**2 + val[3]**2
@@ -78,3 +75,30 @@ def __CreateZeroVelStateIterable(q):
     for _q in q:
         yield _q
         yield 0
+
+def ExtractEigenValueData(matrix,margin=1e-9):
+    evals,evecs = np.linalg.eig(matrix)
+        
+    # get unique eigen values
+    unique = []
+    for i in evals:
+        if np.iscomplex(i):
+            # check the complex conjugate is not already in the list
+            if np.conj(i) not in unique:
+                unique.append(i)
+        else:
+            # and real poles straight away
+            unique.append(i)
+    df_v = pd.DataFrame()
+    df_v['Mode'] = range(0,len(unique))
+    df_v['cn'] = unique
+    df_v['Real'] = np.real(unique)
+    df_v['Imag'] = np.imag(unique)
+    df_v['Frequency'] = np.where(np.iscomplex(unique),np.abs(unique)/(2*np.pi),0)
+    df_v['Damping'] = np.where(np.iscomplex(unique),np.cos(np.angle(unique)),np.NaN)
+    df_v['Stable'] = np.max(df_v['Real'])<=margin
+
+    return df_v
+
+
+
