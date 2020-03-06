@@ -21,8 +21,7 @@ class GravityModel:
         q_func = sym.lambdify((*tup,FwtParams.x),self._Q)
         return q_func
 
-    def __call__(self,FwtParams,x,t):
-        tup = FwtParams.GetNumericTuple(x,t)
+    def __call__(self,tup,x,t,**kwargs):
         Q_g = self.q_func(*tup,x)[:,0]
         max_len = 0
         for i in Q_g:

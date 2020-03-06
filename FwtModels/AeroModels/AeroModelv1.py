@@ -34,7 +34,7 @@ class AeroModelv1:
         dr_idq_j= Transform.Transform_point([0,self.y_t,0]).jacobian(p.q)
 
         # force Rotated into task space
-        self.dL_wi = Transform.T[:3,:3]*sym.Matrix([0,0,self.dL_w])
+        self.dL_wi = Transform.R*sym.Matrix([0,0,self.dL_w])
 
         # generalised force per unit length
         self.dQ = (dr_idq_j.T*self.dL_wi)
@@ -55,8 +55,8 @@ class AeroModelv1:
         tup = FwtParams.GetNumericTuple(x,t)
         return self.dAlpha_func(*tup,y_t,x)
 
-    def __call__(self,FwtParams,x,t):
-        tup = FwtParams.GetNumericTuple(x,t)
+    def __call__(self,tup,x,t,**kwrags):
+        #tup = FwtParams.GetNumericTuple(x,t)
         return self.q_func(*tup,x)[:,0]
 
     def Q(self):

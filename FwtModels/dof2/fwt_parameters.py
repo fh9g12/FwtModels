@@ -39,7 +39,6 @@ class FwtParameters:
         inst.V: FwtVariable = FwtVariable(0,'V') # velocity
         inst.a_t : FwtVariable = FwtVariable(0,'a_t') # C_L of FWT
         inst.alpha_r : FwtVariable = FwtVariable(0,'alpha_r') # C_L of FWT
-        inst.q : sym.Matrix(me.dynamicsymbols(f'q:{2}'))
         return inst
     
     def GetTuple(self,ignore=[]):
@@ -51,4 +50,31 @@ class FwtParameters:
             if isinstance(v,sym.Symbol) and (k not in ignore or v not in ignore):
                 vals.append(v.value(t,x) if callable(v.value) else v.value)
         return tuple(vals)
+
+    def AddRigidFwtVariables(self):
+        self.Lambda: FwtVariable = FwtVariable(0,'Lambda') # flare angle
+
+        self.m_f : FwtVariable = FwtVariable(0,'m_f') # mass of FWT
+        self.l_f : FwtVariable = FwtVariable(0,'l_f') # dist from hinge to CoM
+        self.s_f : FwtVariable = FwtVariable(0,'s_f') # span of FWT
+        self.c_f : FwtVariable = FwtVariable(0,'c_f') # chord of FWT
+        self.a_f : FwtVariable = FwtVariable(0,'a_f') # C_L of FWT
+
+    def AddAttitudeVariables(self):
+        self.g : FwtVariable = FwtVariable(0,'g') # gravity
+        self.rho: FwtVariable = FwtVariable(0,'rho') # density
+        self.V: FwtVariable = FwtVariable(0,'V') # velocity
+        self.alpha_r : FwtVariable = FwtVariable(0,'alpha_r') # C_L of FWT
+    
+    def AddRigidWingVariables(self):
+
+        self.m_w : FwtVariable = FwtVariable(0,'m_w') # mass of wing
+        self.l_w : FwtVariable = FwtVariable(0,'l_w') # dist from root to CoM
+        self.s_w : FwtVariable = FwtVariable(0,'s_w') # span of wing
+        self.c_w : FwtVariable = FwtVariable(0,'c_w') # chord of wing
+        self.a_w : FwtVariable = FwtVariable(0,'a_w') # C_L of wing
+        self.k_w : FwtVariable = FwtVariable(0,'k_w') # spring constant
+        
+
+
     

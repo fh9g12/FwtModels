@@ -82,7 +82,7 @@ class SymbolicModel:
     def deriv(self,t,x,FwtParams):
         p=FwtParams
         tup = FwtParams.GetNumericTuple(x,t)
-        return tuple(i[0] for i in self.X_func(*tup,self.ExtForces(p,x,t),x))
+        return tuple(i[0] for i in self.X_func(*tup,self.ExtForces(tup,x,t),x))
     
     #calculate the total energy in the system
     def KineticEnergy(self,x,FwtParams,t):
