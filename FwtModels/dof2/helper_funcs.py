@@ -76,28 +76,35 @@ def __CreateZeroVelStateIterable(q):
         yield _q
         yield 0
 
-def ExtractEigenValueData(matrix,margin=1e-9):
+def ExtractEigenValueData(matrix,margin=1e-9,sortby=None):
     evals,evecs = np.linalg.eig(matrix)
         
     # get unique eigen values
     unique = []
-    for i in evals:
-        if np.iscomplex(i):
+    unique_vecs = []
+    for idx,val in enumerate(evals):
+        if np.iscomplex(val):
             # check the complex conjugate is not already in the list
-            if np.conj(i) not in unique:
-                unique.append(i)
+            if np.conj(val) not in unique:
+                unique.append(val)
+                unique_vecs.append(evecs[:,idx])
         else:
             # and real poles straight away
-            unique.append(i)
+            unique.append(val)
+            unique_vecs.append(evecs[:,idx].tolist())
     df_v = pd.DataFrame()
-    df_v['Mode'] = range(0,len(unique))
+    
     df_v['cn'] = unique
     df_v['Real'] = np.real(unique)
     df_v['Imag'] = np.imag(unique)
     df_v['Frequency'] = np.where(np.iscomplex(unique),np.abs(unique)/(2*np.pi),0)
     df_v['Damping'] = np.where(np.iscomplex(unique),np.cos(np.angle(unique)),np.NaN)
     df_v['Stable'] = np.max(df_v['Real'])<=margin
+    df_v['Eigen Vector'] = unique_vecs
 
+    if sortby is not None:
+        df_v = df_v.sort_values(by=sortby)  
+    df_v['Mode'] = range(0,len(unique))
     return df_v
 
 
