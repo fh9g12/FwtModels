@@ -53,15 +53,18 @@ class SymbolicModel:
 
         # add exteral forces to EoM
         self.EoM = self.EoM - self.F
+
+        M = self.EoM.jacobian(p.qdd)
+        l = sym.simplify(self.EoM-M*p.qdd)
         
         # get equations for each generalised coordinates acceleration
-        self.a_eq = sym.linsolve(list(self.EoM[:]),list(p.qdd))
+        self.a_eq = M**-1*-l
 
         # create func for each eqn (param + state then derivative as inputs)
         state_vc = []
         for i in range(0,p.qs):
             state_vc.append(p.qd[i])
-            state_vc.append(self.a_eq.args[0][i])
+            state_vc.append(self.a_eq[i,0])
         self.X = sym.Matrix(state_vc)
         
         tup = p.GetTuple()
