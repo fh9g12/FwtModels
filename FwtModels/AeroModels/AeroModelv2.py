@@ -12,7 +12,7 @@ def FwtAoA(FwtParams,foldAngle):
 
 class AeroModelv2:
 
-    def __init__(self,FwtParams,Transform,C_L,ySymbol,spanSymbol,AoA_expr=None):
+    def __init__(self,FwtParams,Transform,C_L,int_tuple,AoA_expr=None):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
         AoA_expr = AoA_expr if AoA_expr is not None else p.alpha_r
@@ -39,7 +39,7 @@ class AeroModelv2:
         self.dQ = (dr_idq_j.T*self.dL_wi)
 
         # generalised force
-        self._Q = self.dQ.integrate((ySymbol,0,spanSymbol))
+        self._Q = self.dQ.integrate(int_tuple)
 
         #convert into a Lambda function
         self.q_func,self.dAlpha_func = self.GenerateLambdas(p)
