@@ -33,7 +33,6 @@ class RigidElement:
 
         return J
 
-
     def CalcKE(self, q, qd):
         # create the jacobian for the mass
         J = self.Jacobian(q)

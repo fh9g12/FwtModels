@@ -1,21 +1,24 @@
-from . import FwtParameters,FwtVariable
+from .. import FwtParameters,FwtVariable
 import sympy as sym
 import numpy as np
 
 def Simplified2DofModel(inner_freq,inner_mass,mass_ratio):
     # create the variables
-    p = FwtParameters.Default2DoF() # parameter container
+    p = FwtParameters(2) # parameter container
+
+    p.m: FwtVariable = FwtVariable(0,'m') # mass of FWT
+    p.l: FwtVariable = FwtVariable(0,'l') # dist from hinge to CoM
+    p.s: FwtVariable = FwtVariable(1,'s') # span
+    p.c: FwtVariable = FwtVariable(0.15,'c') # chord
+    p.k: FwtVariable = FwtVariable(0,'k') # spring constant
+    p.g : FwtVariable = FwtVariable(9.81,'g') # gravity
+    p.Lambda: FwtVariable = FwtVariable(np.deg2rad(10),'Lambda') # flare angle
+    p.rho: FwtVariable = FwtVariable(1.225,'rho') # density
+    p.V: FwtVariable = FwtVariable(0,'V') # velocity
+    p.a_t : FwtVariable = FwtVariable(2 * np.pi,'a_t') # C_L of FWT
+    p.alpha_r : FwtVariable = FwtVariable(np.deg2rad(5),'alpha_r') # C_L of FWT
 
     p.m_w = FwtVariable(inner_mass,'m_w')   # mass of inner wing
-
-    # set values for independent symbols
-    p.s.value = 1
-    p.c.value = 0.15
-    p.g.value = 9.81
-    p.rho.value = 1.225
-    p.a_t.value = 2 * np.pi
-    p.alpha_r.value = np.deg2rad(5)
-    p.Lambda.value = np.deg2rad(10)
 
     # set expression for dependent symbols
     p.k = (sym.Integer(inner_freq)*2*sym.pi)**2*(p.m_w+p.m_w/sym.Float(mass_ratio))
