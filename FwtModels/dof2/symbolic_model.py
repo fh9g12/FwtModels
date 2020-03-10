@@ -5,13 +5,8 @@ import sympyTransforms as symt
 import pandas as pd
 from scipy.linalg import eig
 import sympy.physics.mechanics as me
-from sympy.physics.vector.printing import vpprint, vlatex
-from sympy.utilities.codegen import codegen
-from sympy.utilities.autowrap import autowrap
 from dataclasses import dataclass, InitVar, field
 from sympy.abc import x,y,t
-from .rigidElement import RigidElement, MassMatrix
-import typing
 
 
 class SymbolicModel:
@@ -54,11 +49,11 @@ class SymbolicModel:
         # add exteral forces to EoM
         self.EoM = self.EoM - self.F
 
-        M = self.EoM.jacobian(p.qdd)
-        l = sym.simplify(self.EoM-M*p.qdd)
+        self.M = self.EoM.jacobian(p.qdd)
+        self.f = sym.simplify(self.EoM-self.M*p.qdd)
         
         # get equations for each generalised coordinates acceleration
-        self.a_eq = M**-1*-l
+        self.a_eq = self.M**-1*-self.f
 
         # create func for each eqn (param + state then derivative as inputs)
         state_vc = []
@@ -82,9 +77,7 @@ class SymbolicModel:
         else:
             self.ExtForces = ExtForces
 
-    def deriv(self,t,x,FwtParams):
-        p=FwtParams
-        tup = FwtParams.GetNumericTuple(x,t)
+    def deriv(self,t,x,tup):
         return tuple(i[0] for i in self.X_func(*tup,self.ExtForces(tup,x,t),x))
     
     #calculate the total energy in the system

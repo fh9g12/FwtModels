@@ -8,8 +8,8 @@ import pandas as pd
 def msub(expr,v,sub,derivatives):
     """
     Substitutes the symbol 'sub' with the value 'v' in the expression 'expr',
-    without changing the first 'derivatives' derivatives of 'sub'.
-    i.e. if 'derivatives' = 2 the first two derivatives of 'sub' will be unaffected. 
+    without changing the first 'derivatives' time derivatives of 'sub'.
+    i.e. if 'derivatives' = 2 the first two time derivatives of 'sub' will be unaffected. 
     All other derivatives of 'sub' will become zero! (hangover of how sympy 
     subing works, as the derivate of a constant is zero)
     """
