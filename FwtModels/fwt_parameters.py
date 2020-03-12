@@ -26,12 +26,12 @@ class FwtParameters:
         self.x = sym.Matrix(x_ls)
     
     def GetTuple(self,ignore=[]):
-        return tuple([v for k,v in vars(self).items() if isinstance(v,sym.Symbol) and k not in ignore and v not in ignore ])
+        return tuple([v for k,v in vars(self).items() if isinstance(v,FwtVariable) and k not in ignore and v not in ignore ])
 
     def GetNumericTuple(self,x,t,ignore=[]):
         vals = []
         for k, v in vars(self).items():
-            if isinstance(v,sym.Symbol) and (k not in ignore or v not in ignore):
+            if isinstance(v,FwtVariable) and (k not in ignore or v not in ignore):
                 vals.append(v.value(t,x) if callable(v.value) else v.value)
         return tuple(vals)
         

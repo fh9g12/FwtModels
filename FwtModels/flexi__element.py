@@ -2,31 +2,28 @@ import sympy as sym
 import numpy as np
 from .base_element import BaseElement
 
-def MassMatrix(m,I_xx=0,I_yy=0,I_zz=0,I_xy=0,I_xz=0,I_yz=0):
-    M = sym.diag(m,m,m,I_xx,I_yy,I_zz)
-    M[4,3]=M[3,4]=I_xy
-    M[5,3]=M[3,5]=I_xz
-    M[5,4]=M[4,5]=I_yz
-    return M
+class FlexiElement(BaseElement):
+    def __init__(self,Transform,Rotations,M,x,y,z,c,s,x_f,EI,GJ):
+        
+        self.x = x
+        self.y = y
+        self.z = z
+        self.c = c
+        self.s = s
+        self.EI = EI
+        self.GJ = GJ
+        self.x_f = x_f
 
-
-class RigidElement(BaseElement):
-    def __init__(self,Transform,Rotations,M):
         self.Transform = Transform
         self.M_e = M
         self.Rotations = sym.Matrix([0,0,0]) if Rotations is None \
                                                 else Rotations
-
-    @classmethod
-    def PointMass(cls, Transform,Rotations,m):
-        return cls(Transform,Rotations,MassMatrix(m))
 
     def Jacobian(self,q):
         # create the jacobian for the mass
         J_xyz = self.Transform.Transform_point([0,0,0]).jacobian(q)
         # get jacobian of rotations
         J_r = self.Rotations.jacobian(q)
-
         # construct full jacobian
         J=sym.zeros(6,len(q))
         J[:3,:] = J_xyz
@@ -34,7 +31,7 @@ class RigidElement(BaseElement):
 
         return J
 
-    def CalcKE(self,p):
+    def CalcKE(self, p):
         # create the jacobian for the mass
         J = self.Jacobian(p.q)
 
@@ -44,7 +41,14 @@ class RigidElement(BaseElement):
 
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return T[0]
+        return sym.simplify(T[0].integrate((self.x,-self.c,0),(self.y,0,self.s)))
 
     def CalcPE(self,p):
-        return 0
+        #calc pot energy per unit length
+        U_e = sym.Rational(1,2)*(self.z.subs(self.x,self.x_f).diff(self.y,self.y)**2*self.EI)
+        U_e = U_e + sym.Rational(1,2)*(self.Rotations[1].diff(self.y)**2*self.GJ)
+
+        return U_e.integrate((self.y,0,self.s))
+
+
+            
