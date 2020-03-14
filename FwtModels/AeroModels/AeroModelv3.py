@@ -25,41 +25,31 @@ class AeroModelv3:
         # Calculate the lift force
         self.dL_w = -sym.Rational(1,2)*p.rho*p.V**2*p.c*C_L*self.dAlpha
 
-        e = p.c*sym.Rational(1,4)-p.x_f
-
         # Calulate the pitching Moment
         self.dM_w = sym.Rational(1,2)*p.rho*p.V**2*p.c**2
-        self.dM_w *= (e*C_L*self.dAlpha + M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
+        self.dM_w *= (p.e*C_L*self.dAlpha + M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
 
-        # Rotate to be perp with Hinge
-        #self.dL_w = self.dL_w*sym.cos(self.dAlpha)
+        ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
+        wrench_lift = sym.Matrix([0,0,self.dL_w,0,0,0])
+        velocity_frame = Transform
 
-        ## get lift as a generalised force
+        self.dQ_L = (velocity_frame.ManipJacobian(p.q)).T
+        self.dQ_L *= velocity_frame.InvAdjoint().T
+        self.dQ_L = sym.trigsimp(self.dQ_L) # generally some sin^2 + cos^2 in here
+        self.dQ_L *= wrench_lift
 
-        wrench = sym.Matrix([0,0,self.dL_w,0,self.dM_w,0])
+        ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
+        wrench_moment = sym.Matrix([0,0,0,0,self.dM_w,0])
+        velocity_frame = Transform.R_y(alpha)
 
-        self.dQ = Transform.ManipJacobian(p.q).T
-        #self.dQ *= Transform.InvAdjoint().T
-        self.dQ *= wrench
+        self.dQ_M = (velocity_frame.ManipJacobian(p.q)).T
+        self.dQ_M *= velocity_frame.InvAdjoint().T
+        self.dQ_M *= wrench_moment
 
-        #jacobian per unit length of FWT
-        #dr_idq_j= Transform.Transform_point([0,0,0]).jacobian(p.q)
-
-        # force Rotated into task space
-        #self.dL_wi = Transform.R*sym.Matrix([0,0,self.dL_w])
-
-        # generalised force per unit length
-        #self.dQ = (dr_idq_j.T*self.dL_wi)
-
-        ## get moment as a generalised force
-        #for i in [1,-1]:
-        #    Trans = Transform.Translate(i*0.5,0,0)
-        #    dr_idq_j= Trans.Transform_point([0,0,0]).jacobian(p.q)
-        #    dM_wi = Trans.R*sym.Matrix([0,0,i*self.dM_w])
-        #    self.dQ = self.dQ + dr_idq_j.T*dM_wi
+        self.dQ = self.dQ_L + self.dQ_M
 
         # generalised force
-        self._Q = self.dQ.integrate(int_tuple)
+        self._Q = self.dQ.integrate(int_tuple)        
 
         #convert into a Lambda function
         self.q_func,self.dAlpha_func = self.GenerateLambdas(p)
