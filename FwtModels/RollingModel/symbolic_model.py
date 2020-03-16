@@ -52,7 +52,7 @@ class SymbolicModel:
             self.ExtForces = ExtForces
 
     def deriv(self,t,x,tup):
-        external = self.ExtForces(tup,x,t)
+        external = self.ExtForces(tup,x,t)[:,0]
         accels = np.linalg.inv(self.M_func(*tup,x))@(-self.f_func(*tup,external,x))
         state_vc = []
         for i in range(0,int(len(x)/2)):

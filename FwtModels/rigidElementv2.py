@@ -3,7 +3,7 @@ import numpy as np
 from .base_element import BaseElement
 from sympyTransforms import Vee,Wedge
 
-class RigidElement(BaseElement):
+class RigidElementv2(BaseElement):
     def __init__(self,Transform,Rotations,M):
         self.Transform = Transform
         self.M_e = M
@@ -12,16 +12,18 @@ class RigidElement(BaseElement):
 
     @classmethod
     def PointMass(cls, Transform,Rotations,m):
-        return cls(Transform,Rotations,MassMatrix(m))    
+        return cls(Transform,Rotations,MassMatrix(m))
+    
     
     def Jacobian(self,q):
         # create the jacobian for the mass
-        inv = self.Transform.Inverse().E
-        J = sym.zeros(6,len(q))
-        for i,qi in enumerate(q):
-            J[:,i] = Vee(self.Transform.E.diff(qi)*inv)
+        inv = Transform.E**-1
+        J = sym.Matrix([[0]*p.qs]*6)
+        for i,qi in enumerate(p.q):
+            J[:,i] = Vee(Transform.E.diff(qi)*inv)
         return sym.simplify(J)
     
+
     def CalcKE(self,p):
         # create the jacobian for the mass
         J = self.Jacobian(p.q)
