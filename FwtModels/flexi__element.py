@@ -4,7 +4,7 @@ from .base_element import BaseElement
 from sympyTransforms import Vee,Wedge
 
 class FlexiElement(BaseElement):
-    def __init__(self,Transform,Rotations,M,x,y,z,c,s,x_f,EI,GJ):
+    def __init__(self,Transform,M,x,y,z,c,s,x_f,EI,GJ):
         
         self.x = x
         self.y = y
@@ -17,8 +17,7 @@ class FlexiElement(BaseElement):
 
         self.Transform = Transform
         self.M_e = M
-        self.Rotations = sym.Matrix([0,0,0]) if Rotations is None \
-                                                else Rotations
+
 
     #def Jacobian(self,q):
     #    # create the jacobian for the mass
@@ -31,7 +30,7 @@ class FlexiElement(BaseElement):
     def CalcKE(self, p):
         # create the jacobian for the mass
         
-        J = self.Transform.ManipJacobian(p.q)
+        J = self.Transform.Translate(self.x,self.y,self.z).ManipJacobian(p.q)
 
         #get M in world frame
         #calculate the mass Matrix
@@ -39,12 +38,17 @@ class FlexiElement(BaseElement):
 
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return sym.simplify(T[0].integrate((self.x,-self.c,0),(self.y,0,self.s)))
+        return sym.simplify(T[0].integrate((self.x,-self.x_f,self.c-self.x_f),(self.y,0,self.s)))
 
     def CalcPE(self,p):
-        #calc pot energy per unit length
-        U_e = sym.Rational(1,2)*(self.z.subs(self.x,self.x_f).diff(self.y,self.y)**2*self.EI)
-        U_e = U_e + sym.Rational(1,2)*(self.Rotations[1].diff(self.y)**2*self.GJ)
+        #first derivative
+        Trans = self.Transform.Translate(self.x,self.y,self.z)
+
+        # Bending Potential Energy per unit length
+        U_e = ((Trans.diff(self.y).diff(self.y).Transform_point([0,0,0])[2])**2*self.EI*sym.Rational(1,2))
+
+        # Torsional P.E per unit length
+        U_e += ((Trans.diff(self.x).diff(self.y).Transform_point([0,0,0])[2])**2*self.GJ*sym.Rational(1,2))
 
         return U_e.integrate((self.y,0,self.s))
 
