@@ -46,15 +46,15 @@ class AeroModelv2:
 
     def GenerateLambdas(self,FwtParams):
         tup = FwtParams.GetTuple()
-        q_func = sym.lambdify((*tup,FwtParams.x),self._Q)
-        dAlpha_func = sym.lambdify((*tup,FwtParams.x),self.dAlpha)
+        q_func = sym.lambdify((tup,FwtParams.x),self._Q)
+        dAlpha_func = sym.lambdify((tup,FwtParams.x),self.dAlpha)
         return q_func,dAlpha_func
 
     def GetAlpha(self,tup,x,t,**kwargs):
-        return self.dAlpha_func(*tup,x)
+        return self.dAlpha_func(tup,x)
 
     def __call__(self,tup,x,t,**kwargs):
-        return self.q_func(*tup,x)[:,0]
+        return self.q_func(tup,x)
 
     def Q(self):
         return self._Q

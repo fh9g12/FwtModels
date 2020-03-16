@@ -3,7 +3,7 @@ import sympy.physics.mechanics as me
 
 class AeroModelv1:
 
-    def __init__(self,FwtParams,Transform,at_mode=0):
+    def __init__(self,FwtParams,Transform,alpha,at_mode=0):
         p = FwtParams
         ## force per unit length will follow theredosons unsteady theory
 
@@ -21,9 +21,10 @@ class AeroModelv1:
         stheta = sym.sin(foldAngle)
         ctheta = sym.cos(foldAngle)
         sLambda = sym.sin(p.Lambda)
-        n = p.alpha_r*ctheta+sLambda*stheta
-        d = p.alpha_r*sLambda*stheta-sLambda**2*ctheta+sLambda**2-1
-        self.dAlpha = sym.atan(-n/d)
+        #n = p.alpha_r*ctheta+sLambda*stheta
+        #d = p.alpha_r*sLambda*stheta-sLambda**2*ctheta+sLambda**2-1
+        #self.dAlpha = sym.atan(-n/d)
+        self.dAlpha = alpha
 
         self.dAlpha = self.dAlpha + p.qd[0]*self.y_t/p.V
         self.dAlpha = self.dAlpha + (p.qd[1]*sym.cos(p.q[0]))/p.V
@@ -57,7 +58,7 @@ class AeroModelv1:
 
     def __call__(self,tup,x,t,**kwrags):
         #tup = FwtParams.GetNumericTuple(x,t)
-        return self.q_func(*tup,x)[:,0]
+        return self.q_func(*tup,x)
 
     def Q(self):
         return self._Q

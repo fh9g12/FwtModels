@@ -6,36 +6,30 @@ class GravityModel:
 
     def __init__(self,FwtParams,Transform,ForceVector):
         p = FwtParams
-       
-        #jacobian for the CoM of the FWT
-        dr_idq_j= Transform.Transform_point([0,0,0]).jacobian(p.q)
+        # create the wrench applied at the origin of the endeffector in spetial coords
+        wrench_g = sym.Matrix([ForceVector[0],ForceVector[1],ForceVector[2],0,0,0])
 
-        # generalised force
-        self._Q = (dr_idq_j.T*ForceVector)
+        ## convert this to a spatial wrench
 
-        #convert into a Lambda function
+        # make a frame a end effector in body frame
+        tup = tuple(Transform.t)
+        T_trans = Transform.PuesdoSpatialFrame()
+
+        # convert wrench into this frame
+        F_s = T_trans.Adjoint().T*wrench_g
+
+        # convert into joint torques
+        self._Q = sym.simplify(Transform.ManipJacobian(p.q).T*F_s)
+     
         self.q_func = self.GenerateLambdas(p)
 
     def GenerateLambdas(self,FwtParams):
         tup = FwtParams.GetTuple()
-        q_func = sym.lambdify((*tup,FwtParams.x),self._Q)
+        q_func = sym.lambdify((tup,FwtParams.x),self._Q)
         return q_func
 
     def __call__(self,tup,x,t,**kwargs):
-        Q_g = self.q_func(*tup,x)[:,0]
-        max_len = 0
-        for i in Q_g:
-            if isinstance(i,float):
-                len_i = 1
-            else:
-                len_i = len(i)  
-            max_len = len_i if len_i>max_len else max_len
-        if max_len == 1:
-            return Q_g
-        Q_g_new = np.ones((max_len,len(Q_g)))
-        for i in range(0,len(Q_g)):
-            Q_g_new[:,i]=Q_g[i]
-        return Q_g_new.T
+        return self.q_func(tup,x)
 
     def Q(self):
         return self._Q

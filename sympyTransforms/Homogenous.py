@@ -79,6 +79,12 @@ class HomogenousTransform:
         V[5,0] = S[1,0]
         return V
 
+    def PuesdoSpatialFrame(self):
+        E = self.E
+        E[:3,:3] = sym.eye(3)
+        return HomogenousTransform(E)
+
+
     def R_x(self,angle):
         H = sym.eye(4)
         H[:3,:3]=sym.Matrix([[1,0,0],

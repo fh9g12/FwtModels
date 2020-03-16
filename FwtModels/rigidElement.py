@@ -2,29 +2,20 @@ import sympy as sym
 import numpy as np
 from .base_element import BaseElement
 from sympyTransforms import Vee,Wedge
+from .mass_matrix import MassMatrix
 
 class RigidElement(BaseElement):
-    def __init__(self,Transform,Rotations,M):
+    def __init__(self,Transform,M):
         self.Transform = Transform
         self.M_e = M
-        self.Rotations = sym.Matrix([0,0,0]) if Rotations is None \
-                                                else Rotations
 
     @classmethod
-    def PointMass(cls, Transform,Rotations,m):
-        return cls(Transform,Rotations,MassMatrix(m))    
-    
-    def Jacobian(self,q):
-        # create the jacobian for the mass
-        inv = self.Transform.Inverse().E
-        J = sym.zeros(6,len(q))
-        for i,qi in enumerate(q):
-            J[:,i] = Vee(self.Transform.E.diff(qi)*inv)
-        return sym.simplify(J)
+    def PointMass(cls, Transform,m):
+        return cls(Transform,MassMatrix(m))    
     
     def CalcKE(self,p):
         # create the jacobian for the mass
-        J = self.Jacobian(p.q)
+        J = self.Transform.ManipJacobian(p.q)
 
         #get M in world frame
         #calculate the mass Matrix

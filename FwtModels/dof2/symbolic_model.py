@@ -36,7 +36,7 @@ class SymbolicModel:
         self.T = sym.Integer(1)
         # add K.E for each Rigid Element
         for ele in Elements:
-            T_e = ele.CalcKE(p.q,p.qd)
+            T_e = ele.CalcKE(p)
             self.T = self.T + T_e
 
         # calculate EoM
