@@ -38,17 +38,19 @@ class FlexiElement(BaseElement):
 
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return sym.simplify(T[0].integrate((self.x,-self.x_f,self.c-self.x_f),(self.y,0,self.s)))
+        return sym.simplify(T[0].integrate((self.x,0,self.c),(self.y,0,self.s)))
 
     def CalcPE(self,p):
         #first derivative
-        Trans = self.Transform.Translate(self.x,self.y,self.z)
+        Trans = self.Transform.Translate(self.x_f,self.y,self.z.subs(self.x,self.x+self.x_f))
 
         # Bending Potential Energy per unit length
-        U_e = ((Trans.diff(self.y).diff(self.y).Transform_point([0,0,0])[2])**2*self.EI*sym.Rational(1,2))
+        v = Trans.diff(self.y).diff(self.y).Transform_point([0,0,0])
+        U_e = sym.trigsimp((v.T*v))[0]*self.EI*sym.Rational(1,2)
 
         # Torsional P.E per unit length
-        U_e += ((Trans.diff(self.x).diff(self.y).Transform_point([0,0,0])[2])**2*self.GJ*sym.Rational(1,2))
+        v = Trans.diff(self.x).diff(self.y).Transform_point([0,0,0])
+        U_e += sym.trigsimp((v.T*v))[0]*self.GJ*sym.Rational(1,2)
 
         return U_e.integrate((self.y,0,self.s))
 

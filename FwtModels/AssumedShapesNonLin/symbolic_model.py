@@ -57,13 +57,13 @@ class SymbolicModel:
 
         tup = p.GetTuple()
         # Mass Matrix Eqn
-        self.M_func = sym.lambdify((tup,p.x),self.M)
+        self.M_func = sym.lambdify((tup,p.x),self.M,"numpy")
         #func eqn
-        self.f_func = sym.lambdify((tup,self.F,p.x),self.f)
+        self.f_func = sym.lambdify((tup,self.F,p.x),self.f,"numpy")
         # potential energy function
-        self.u_eqn = sym.lambdify((tup,p.x),self.U)
+        self.u_eqn = sym.lambdify((tup,p.x),self.U,"numpy")
         # kinetic energy function
-        self.t_eqn = sym.lambdify((tup,p.x),self.T)
+        self.t_eqn = sym.lambdify((tup,p.x),self.T,"numpy")
 
         # set external force function
         if ExtForces == None:
@@ -77,6 +77,6 @@ class SymbolicModel:
         state_vc = []
         for i in range(0,int(len(x)/2)):
             state_vc.append(x[(i)*2+1])
-            state_vc.append(accels[i,0])
+            state_vc.append(float(accels[i,0]) if isinstance(accels[i,0],sym.Float) else accels[i,0])
         return tuple(state_vc)
 

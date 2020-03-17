@@ -25,7 +25,7 @@ class GravityModel:
 
     def GenerateLambdas(self,FwtParams):
         tup = FwtParams.GetTuple()
-        q_func = sym.lambdify((tup,FwtParams.x),self._Q)
+        q_func = sym.lambdify((tup,FwtParams.x),self._Q,"numpy")
         return q_func
 
     def __call__(self,tup,x,t,**kwargs):
