@@ -27,6 +27,9 @@ class FwtParameters:
     
     def GetTuple(self,ignore=[]):
         return tuple([v for k,v in vars(self).items() if isinstance(v,FwtVariable) and k not in ignore and v not in ignore ])
+    
+    def GetSubs(self,ignore=[]):
+        return {v:v.value for k,v in vars(self).items() if isinstance(v,FwtVariable) and k not in ignore and v not in ignore}
 
     def GetNumericTuple(self,x,t,ignore=[]):
         vals = []
