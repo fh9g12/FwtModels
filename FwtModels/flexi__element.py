@@ -39,7 +39,7 @@ class FlexiElement(BaseElement):
         Trans = self.Transform.Translate(self.x_f,self.y,self.z.subs(self.x,self.x+self.x_f))
 
         # Bending Potential Energy per unit length
-        v = Trans.diff(self.y).diff(self.y).Transform_point([0,0,0])
+        v = Trans.subs(self.x,0).diff(self.y,self.y).Transform_point([0,0,0])
         U_e = sym.trigsimp((v.T*v))[0]*self.EI*sym.Rational(1,2)
 
         # Torsional P.E per unit length

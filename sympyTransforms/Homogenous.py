@@ -65,9 +65,6 @@ class HomogenousTransform:
         E[:3,3:] = -self.R.T*Wedge3(self.t)
         return E
 
-    def diff(self,d):
-        return HomogenousTransform(self.E.diff(d))
-
     def BodyVelocity(self):
         V = sym.ones(6,1)
         V[:3,0] = self.R.T*self.t.diff(t)
@@ -134,6 +131,12 @@ class HomogenousTransform:
 
     def simplify(self):
         return HomogenousTransform(sym.simplify(self.E))
+
+    def diff(self,*args):  
+        return HomogenousTransform(self.E.diff(*args))
+
+    def subs(self,*args):  
+        return HomogenousTransform(self.E.subs(*args))
 
     def Transform_point(self,p):
         p_l = list(p)
