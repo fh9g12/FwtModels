@@ -11,7 +11,7 @@ def FwtAoA(Lambda,foldAngle,root_aoa):
 
 class AeroModelv3:
 
-    def __init__(self,FwtParams,Transform,C_L,int_tuple,rootAlpha,delta_alpha,alphadot,M_thetadot,ec):
+    def __init__(self,FwtParams,Transform,C_L,int_tuple,rootAlpha,delta_alpha,alphadot,M_thetadot,e):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
 
@@ -19,17 +19,15 @@ class AeroModelv3:
         v_z_eff = sym.simplify(Transform.BodyVelocity()[2])
 
         # combine to get effective AoA
-        self.dAlpha = rootAlpha + delta_alpha + v_z_eff/p.V
-
-        c = sym.Abs(p.c)
+        self.dAlpha = rootAlpha + delta_alpha - v_z_eff/p.V
 
         # Calculate the lift force
         dynamicPressure = sym.Rational(1,2)*p.rho*p.V**2
-        self.dL_w = -dynamicPressure*c*C_L*self.dAlpha
+        self.dL_w = dynamicPressure*p.c*C_L*self.dAlpha
 
         # Calulate the pitching Moment
-        self.dM_w = self.dL_w*ec # Moment due to lift
-        self.dM_w += dynamicPressure*c*p.c*(M_thetadot*alphadot*c/(sym.Integer(4)*p.V))
+        self.dM_w = self.dL_w*e*p.c # Moment due to lift
+        self.dM_w += dynamicPressure*p.c**2*(M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
         wrench_lift = sym.Matrix([0,0,self.dL_w,0,0,0])

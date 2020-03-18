@@ -15,9 +15,9 @@ def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1000):
         z = z + fac*q[i]*y_s**(2+i)
     for i in range(0,m):
         qi = i+n
-        tau = tau + fac*q[qi]*y_s**(i+1)
+        tau = tau - fac*q[qi]*y_s**(i+1)
     
-    z = z - tau*(x-x_f)
+    z -= tau*(x-x_f)
 
     return z, tau
     

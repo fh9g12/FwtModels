@@ -15,8 +15,8 @@ class FlexiElement(BaseElement):
         self.GJ = GJ
         self.x_f = x_f
 
-        self.y_integral = (self.y,self.s,0) if s_negative else (self.y,0,self.s)
-        self.x_integral = (self.x,self.c,0) if c_negative else (self.x,0,self.c) 
+        self.y_integral = (self.y,0,self.s)
+        self.x_integral = (self.x,0,self.c) 
 
         self.Transform = Transform
         self.M_e = M
