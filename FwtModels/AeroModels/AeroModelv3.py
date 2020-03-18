@@ -28,7 +28,6 @@ class AeroModelv3:
         self.dL_w = -dynamicPressure*c*C_L*self.dAlpha
 
         # Calulate the pitching Moment
-        #self.dM_w = sym.Rational(1,2)*p.rho*p.V**2*c**2
         self.dM_w = self.dL_w*ec # Moment due to lift
         self.dM_w += dynamicPressure*c*p.c*(M_thetadot*alphadot*c/(sym.Integer(4)*p.V))
 
