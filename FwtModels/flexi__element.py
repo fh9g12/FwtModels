@@ -4,7 +4,7 @@ from .base_element import BaseElement
 from sympyTransforms import Vee,Wedge
 
 class FlexiElement(BaseElement):
-    def __init__(self,Transform,M,x,y,z,c,s,x_f,EI,GJ):
+    def __init__(self,Transform,M,x,y,z,c,s,x_f,EI,GJ,c_negative=False,s_negative=False):
         
         self.x = x
         self.y = y
@@ -15,17 +15,11 @@ class FlexiElement(BaseElement):
         self.GJ = GJ
         self.x_f = x_f
 
+        self.y_integral = (self.y,self.s,0) if s_negative else (self.y,0,self.s)
+        self.x_integral = (self.x,self.c,0) if c_negative else (self.x,0,self.c) 
+
         self.Transform = Transform
         self.M_e = M
-
-
-    #def Jacobian(self,q):
-    #    # create the jacobian for the mass
-    #    inv = self.Transform.E**-1
-    #    J = sym.zeros(6,len(q))
-    #    for i,qi in enumerate(q):
-    #        J[:,i] = Vee(self.Transform.E.diff(qi)*inv)
-    #    return sym.simplify(J)
 
     def CalcKE(self, p):
         # create the jacobian for the mass
@@ -38,7 +32,7 @@ class FlexiElement(BaseElement):
 
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return sym.simplify(T[0].integrate((self.x,0,self.c),(self.y,0,self.s)))
+        return sym.simplify(T[0].integrate(self.x_integral,self.y_integral))
 
     def CalcPE(self,p):
         #first derivative
@@ -52,7 +46,7 @@ class FlexiElement(BaseElement):
         v = Trans.diff(self.x).diff(self.y).Transform_point([0,0,0])
         U_e += sym.trigsimp((v.T*v))[0]*self.GJ*sym.Rational(1,2)
 
-        return U_e.integrate((self.y,0,self.s))
+        return U_e.integrate(self.y_integral)
 
 
             

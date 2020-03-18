@@ -4,14 +4,14 @@ from scipy import integrate
 
 def FwtAoA(Lambda,foldAngle,root_aoa):
     # get velocity vector in FWT frame
-    v_x = p.V * (sym.sin(Lambda)**2*sym.cos(root_aoa)*sym.cos(foldAngle) - sym.sin(Lambda)**2*sym.cos(root_aoa) - sym.sin(Lambda)*sym.sin(root_aoa)*sym.sin(foldAngle) + sym.cos(root_aoa))
-    v_z = p.V * (sym.sin(Lambda)*sym.sin(foldAngle)*sym.cos(root_aoa) + sym.sin(root_aoa)*sym.cos(foldAngle))
+    v_x = (sym.sin(Lambda)**2*sym.cos(root_aoa)*sym.cos(foldAngle) - sym.sin(Lambda)**2*sym.cos(root_aoa) - sym.sin(Lambda)*sym.sin(root_aoa)*sym.sin(foldAngle) + sym.cos(root_aoa))
+    v_z = (sym.sin(Lambda)*sym.sin(foldAngle)*sym.cos(root_aoa) + sym.sin(root_aoa)*sym.cos(foldAngle))
     return sym.atan(v_z/v_x)
 
 
 class AeroModelv3:
 
-    def __init__(self,FwtParams,Transform,C_L,int_tuple,rootAlpha,delta_alpha,alphadot,M_thetadot):
+    def __init__(self,FwtParams,Transform,C_L,int_tuple,rootAlpha,delta_alpha,alphadot,M_thetadot,ec):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
 
@@ -21,12 +21,16 @@ class AeroModelv3:
         # combine to get effective AoA
         self.dAlpha = rootAlpha + delta_alpha + v_z_eff/p.V
 
+        c = sym.Abs(p.c)
+
         # Calculate the lift force
-        self.dL_w = -sym.Rational(1,2)*p.rho*p.V**2*p.c*C_L*self.dAlpha
+        dynamicPressure = sym.Rational(1,2)*p.rho*p.V**2
+        self.dL_w = -dynamicPressure*c*C_L*self.dAlpha
 
         # Calulate the pitching Moment
-        self.dM_w = sym.Rational(1,2)*p.rho*p.V**2*p.c**2
-        self.dM_w *= (p.e*C_L*self.dAlpha + M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
+        #self.dM_w = sym.Rational(1,2)*p.rho*p.V**2*c**2
+        self.dM_w = self.dL_w*ec # Moment due to lift
+        self.dM_w += dynamicPressure*c*p.c*(M_thetadot*alphadot*c/(sym.Integer(4)*p.V))
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
         wrench_lift = sym.Matrix([0,0,self.dL_w,0,0,0])

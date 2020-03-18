@@ -19,7 +19,7 @@ class GravityModel:
         F_s = T_trans.Adjoint().T*wrench_g
 
         # convert into joint torques
-        self._Q = sym.simplify(Transform.ManipJacobian(p.q).T*F_s)
+        self._Q = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
      
         self.q_func = self.GenerateLambdas(p)
 

@@ -35,8 +35,8 @@ class HomogenousTransform:
 
     def __init__(self,T=None):
         self.E = sym.eye(4) if T is None else T
-        self.R = self.E[:3,:3]
-        self.t = self.E[:3,3]
+        self.R = self.E[:3,:3].copy()
+        self.t = self.E[:3,3].copy()
 
     def Inverse(self):
         E = sym.eye(4)
@@ -80,7 +80,7 @@ class HomogenousTransform:
         return V
 
     def PuesdoSpatialFrame(self):
-        E = self.E
+        E = self.E.copy()
         E[:3,:3] = sym.eye(3)
         return HomogenousTransform(E)
 

@@ -16,6 +16,8 @@ class CompositeForce:
 
     def Q(self):
         val = sym.Matrix([0]*self.__qs)
-        for i in range(0,len(self.forces)):           
-            val = val + self.forces[i].Q()
+        for i in range(0,len(self.forces)):
+            new_val = self.forces[i].Q()
+            if new_val is not None:        
+                val += new_val
         return val
