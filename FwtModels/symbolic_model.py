@@ -29,35 +29,57 @@ class SymbolicModel:
             (so energy equation knows which one) if no theta coordinate leave
             as 'None'
     """
-
-    def __init__(self,Elements,FwtParams, ExtForces = None):
-
-        p = FwtParams
-        # matrix for forcing terms        
-        self.F = sym.Matrix(me.dynamicsymbols(f'f:{p.qs}'))
+    @classmethod
+    def FromElementsAndForces(cls,FwtParams,Elements,ExtForces = None):
+        """
+        Create a symbolic Model instance from a set Elements and external forces
+        """
+        p = FwtParams 
 
         # Calc K.E
-        self.T = sym.Integer(0)
+        T = sym.Integer(0)
         # add K.E for each Rigid Element
         for ele in Elements:
             T_e = ele.CalcKE(p)
-            self.T = self.T + T_e
+            T = T + T_e
 
         # calc P.E
-        self.U = sym.Integer(0)
+        U = sym.Integer(0)
         # add K.E for each Rigid Element
         for ele in Elements:
             U_e = ele.CalcPE(p)
-            self.U = self.U + U_e
+            U = U + U_e
 
         # calculate EoM
-        self.Lag = sym.Matrix([self.T-self.U])
-        term_1 = self.Lag.jacobian(p.qd).diff(me.dynamicsymbols._t).T.expand()
-        term_2 = self.Lag.jacobian(p.q).T
+        Lag = sym.Matrix([T-U])
+        term_1 = Lag.jacobian(p.qd).diff(me.dynamicsymbols._t).T.expand()
+        term_2 = Lag.jacobian(p.q).T
 
-        self.M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
-        self.f = sym.simplify(term_1-self.M*p.qdd) -term_2
+        # Get Mass Matrix and 'internal' forcing term
+        M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
+        f = sym.simplify(term_1-M*p.qdd) -term_2
+        return cls(p,M,f,ExtForces)
 
+
+    def __init__(self,FwtParams,M,f,ExtForces = None):
+        """
+        Initialise a Symbolic model of the form 
+        $M\ddot{q}+f(\dot{q},q,t)-ExtForces(\dot{q},q,t) = 0$
+
+        with the Symbolic Matricies M,f,and Extforces
+        """
+        p = FwtParams
+
+        self.M = M
+        self.f = f
+
+        # set external force function
+        if ExtForces == None:
+            self.ExtForces = lambda tup,x,t:[0]*int(len(x)/2)
+        else:
+            self.ExtForces = ExtForces
+
+        #generate lambda functions
         tup = p.GetTuple()
         # Mass Matrix Eqn
         self.M_func = sym.lambdify((tup,p.x),self.M,"numpy")
@@ -68,11 +90,14 @@ class SymbolicModel:
         # kinetic energy function
         self.t_eqn = sym.lambdify((tup,p.x),self.T,"numpy")
 
-        # set external force function
-        if ExtForces == None:
-            self.ExtForces = lambda tup,x,t:[0]*int(len(x)/2)
-        else:
-            self.ExtForces = ExtForces
+    def subs(self,p,*args):
+        """
+        Creates a new instance of a Symbolic model with the substutions supplied
+         in args applied to all the Matricies
+        """
+        ExtForces = self.ExtForces.subs(p,*args) if self.ExtForces is not None else None
+        return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),ExtForces)
+     
 
     def deriv(self,t,x,tup):
         external = self.ExtForces(tup,x,t)
@@ -83,6 +108,5 @@ class SymbolicModel:
             state_vc.append(x[(i)*2+1])
             state_vc.append(accels[i,0])
         return tuple(state_vc)
-        #return tuple(np.insert(accels[:,0], np.arange(len(velocities)), velocities))
 
 

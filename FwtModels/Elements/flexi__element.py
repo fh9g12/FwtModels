@@ -1,7 +1,6 @@
 import sympy as sym
 import numpy as np
 from .base_element import BaseElement
-from sympyTransforms import Vee,Wedge
 
 class FlexiElement(BaseElement):
     def __init__(self,Transform,M,x,y,z,c,s,x_f,EI,GJ,c_negative=False,s_negative=False):

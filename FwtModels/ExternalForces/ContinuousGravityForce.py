@@ -1,12 +1,9 @@
 import sympy as sym
 import sympy.physics.mechanics as me
 import numpy as np
+from . import ExternalForce
 
-import sys, os
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-import sympyTransforms as symt
-
-class ContinuousGravityModel:
+class ContinuousGravityForce(ExternalForce):
 
     def __init__(self,FwtParams,Transform,ForceVector,*int_tuple):
         p = FwtParams
@@ -23,18 +20,7 @@ class ContinuousGravityModel:
         F_s = T_trans.Adjoint().T*wrench_g
 
         # convert into joint torques
-        self._dQ = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
-        self._Q = self._dQ.integrate(*int_tuple)
-     
-        self.q_func = self.GenerateLambdas(p)
+        _dQ = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
+        _Q = _dQ.integrate(*int_tuple)
 
-    def GenerateLambdas(self,FwtParams):
-        tup = FwtParams.GetTuple()
-        q_func = sym.lambdify((tup,FwtParams.x),self._Q,"numpy")
-        return q_func
-
-    def __call__(self,tup,x,t,**kwargs):
-        return self.q_func(tup,x)
-
-    def Q(self):
-        return self._Q
+        super().__init__(self,p,_Q)

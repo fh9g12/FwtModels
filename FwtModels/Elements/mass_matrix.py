@@ -1,7 +1,5 @@
 import sympy as sym
 import numpy as np
-from .base_element import BaseElement
-from sympyTransforms import Vee,Wedge
 
 def MassMatrix(m,I_xx=0,I_yy=0,I_zz=0,I_xy=0,I_xz=0,I_yz=0):
     M = sym.diag(m,m,m,I_xx,I_yy,I_zz)

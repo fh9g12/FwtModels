@@ -1,5 +1,2 @@
-#from . import AssumedShapes
 from .fwt_parameters import FwtParameters, FwtVariable
-from .rigidElement import RigidElement
-from .flexi__element import FlexiElement
-from .mass_matrix import MassMatrix
+from .helper_funcs import ShapeFunctions_BN_TM,GetVh,GetAoA
