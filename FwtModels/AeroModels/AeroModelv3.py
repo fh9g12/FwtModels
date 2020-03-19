@@ -2,6 +2,10 @@ import sympy as sym
 import sympy.physics.mechanics as me
 from scipy import integrate
 
+import sys, os
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+import sympyTransforms as symt
+
 def FwtAoA(Lambda,foldAngle,root_aoa):
     # get velocity vector in FWT frame
     v_x = (sym.sin(Lambda)**2*sym.cos(root_aoa)*sym.cos(foldAngle) - sym.sin(Lambda)**2*sym.cos(root_aoa) - sym.sin(Lambda)*sym.sin(root_aoa)*sym.sin(foldAngle) + sym.cos(root_aoa))

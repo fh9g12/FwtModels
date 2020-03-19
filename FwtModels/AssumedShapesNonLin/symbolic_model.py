@@ -9,6 +9,10 @@ from sympy.utilities.autowrap import autowrap
 from dataclasses import dataclass, InitVar, field
 from sympy.abc import x,y,t
 
+import sys, os
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+import sympyTransforms as symt
+
 
 class SymbolicModel:
     """
@@ -73,6 +77,12 @@ class SymbolicModel:
     def deriv(self,t,x,tup):
         external = self.ExtForces(tup,x,t)
         accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x)+external)
-        velocities = x[[i*2+1 for i in range(int((len(x)/2)))]]
-        return tuple(np.insert(accels[:,0], np.arange(len(velocities)), velocities))
+
+        state_vc = []
+        for i in range(0,int(len(x)/2)):
+            state_vc.append(x[(i)*2+1])
+            state_vc.append(accels[i,0])
+        return tuple(state_vc)
+        #return tuple(np.insert(accels[:,0], np.arange(len(velocities)), velocities))
+
 
