@@ -9,6 +9,10 @@ from sympy.utilities.autowrap import autowrap
 from dataclasses import dataclass, InitVar, field
 from sympy.abc import x,y,t
 
+import sys, os
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+import sympyTransforms as symt
+
 
 class SymbolicModel:
     """
@@ -51,15 +55,14 @@ class SymbolicModel:
         term_1 = self.Lag.jacobian(p.qd).diff(me.dynamicsymbols._t).T.expand()
         term_2 = self.Lag.jacobian(p.q).T
 
-
         self.M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
-        self.f = sym.simplify(term_1-self.M*p.qdd) -term_2 - self.F
+        self.f = sym.simplify(term_1-self.M*p.qdd) -term_2
 
         tup = p.GetTuple()
         # Mass Matrix Eqn
         self.M_func = sym.lambdify((tup,p.x),self.M,"numpy")
         #func eqn
-        self.f_func = sym.lambdify((tup,self.F,p.x),self.f,"numpy")
+        self.f_func = sym.lambdify((tup,p.x),self.f,"numpy")
         # potential energy function
         self.u_eqn = sym.lambdify((tup,p.x),self.U,"numpy")
         # kinetic energy function
@@ -72,11 +75,14 @@ class SymbolicModel:
             self.ExtForces = ExtForces
 
     def deriv(self,t,x,tup):
-        external = self.ExtForces(tup,x,t)[:,0]
-        accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,external,x))
+        external = self.ExtForces(tup,x,t)
+        accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x)+external)
+
         state_vc = []
         for i in range(0,int(len(x)/2)):
             state_vc.append(x[(i)*2+1])
-            state_vc.append(float(accels[i,0]) if isinstance(accels[i,0],sym.Float) else accels[i,0])
+            state_vc.append(accels[i,0])
         return tuple(state_vc)
+        #return tuple(np.insert(accels[:,0], np.arange(len(velocities)), velocities))
+
 
