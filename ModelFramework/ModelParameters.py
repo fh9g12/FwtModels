@@ -16,17 +16,18 @@ class ModelParameters:
     def DynamicModel(cls,DoFs):
         model = cls()
 
-        model.qs = qs
-        model.q = sym.Matrix(me.dynamicsymbols(f'q:{qs}'))
-        model.qd = sym.Matrix(me.dynamicsymbols(f'q:{qs}',1))
-        model.qdd = sym.Matrix(me.dynamicsymbols(f'q:{qs}',2))
+        model.qs = DoFs
+        model.q = sym.Matrix(me.dynamicsymbols(f'q:{DoFs}'))
+        model.qd = sym.Matrix(me.dynamicsymbols(f'q:{DoFs}',1))
+        model.qdd = sym.Matrix(me.dynamicsymbols(f'q:{DoFs}',2))
 
         # create state matrix
         x_ls = []
-        for i in range(0,qs):
+        for i in range(0,DoFs):
             x_ls.append(model.q[i])
             x_ls.append(model.qd[i])
-        model.x = sym.Matrix(x_ls)        
+        model.x = sym.Matrix(x_ls)
+        return model      
     
     def GetTuple(self,ignore=[]):
         return tuple([v for k,v in vars(self).items() if isinstance(v,ModelVariable) and k not in ignore and v not in ignore ])

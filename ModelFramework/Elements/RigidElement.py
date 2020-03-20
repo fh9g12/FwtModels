@@ -1,6 +1,6 @@
 import sympy as sym
-from .base_element import BaseElement
-from .mass_matrix import MassMatrix
+from .BaseElement import BaseElement
+from .MassMatrix import MassMatrix
 
 class RigidElement(BaseElement):
     def __init__(self,Transform,M):

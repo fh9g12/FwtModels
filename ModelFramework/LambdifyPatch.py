@@ -13,11 +13,6 @@ def doprint(self, funcname, args, expr):
 
         argstrs, expr = self._preprocess(args, expr)
 
-        def InfIterator():
-            i=0
-            while True:
-                yield Symbol(f'rep_{i}')
-
         ## --------------- Addition -----------------
         replacments, exprs = cse(expr,symbols=(Symbol(f'rep_{i}')for i in range(100)))
         expr = exprs[0]

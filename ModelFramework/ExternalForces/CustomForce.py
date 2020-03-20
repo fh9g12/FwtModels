@@ -1,6 +1,6 @@
 from . import ExternalForce
 
-class ForcingFunction(ExternalForce):
+class CustomForce(ExternalForce):
 
     def __init__(self,Forcingfunction):
         self.Forcingfunction = Forcingfunction

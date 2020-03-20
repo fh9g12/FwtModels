@@ -42,9 +42,11 @@ class AeroForce(ExternalForce):
 
         # generalised force
         _Q = self.dQ.integrate(int_tuple)
+
+        tup = FwtParams.GetTuple()   
         self.dAlpha_func = sym.lambdify((tup,FwtParams.x),self.dAlpha,"numpy")
 
-        super().__init__(self,p,Q)       
+        super().__init__(p,_Q)       
 
     def GetAlpha(self,tup,x,t,**kwargs):
         return self.dAlpha_func(tup,x)

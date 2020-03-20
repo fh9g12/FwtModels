@@ -21,4 +21,4 @@ class ContinuousGravityForce(ExternalForce):
         _dQ = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
         _Q = _dQ.integrate(*int_tuple)
 
-        super().__init__(self,p,_Q)
+        super().__init__(p,_Q)

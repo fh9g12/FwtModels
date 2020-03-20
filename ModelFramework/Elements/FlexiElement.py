@@ -1,5 +1,5 @@
 import sympy as sym
-from .base_element import BaseElement
+from .BaseElement import BaseElement
 
 class FlexiElement(BaseElement):
     def __init__(self,Transform,M,x,y,z,c,s,x_f,EI,GJ,c_negative=False,s_negative=False):

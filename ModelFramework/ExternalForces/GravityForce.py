@@ -20,4 +20,4 @@ class GravityForce(ExternalForce):
         # convert into joint torques
         _Q = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
 
-        super().__init__(self,p,_Q)
+        super().__init__(p,_Q)
