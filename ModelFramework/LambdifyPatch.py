@@ -1,6 +1,7 @@
 from sympy.utilities.lambdify import _EvaluatorPrinter
 from sympy.core.compatibility import (exec_, is_sequence, iterable,
     NotIterable, builtins)
+    
 def doprint(self, funcname, args, expr):
         """Returns the function definition code as a string."""
         from sympy import Dummy,cse,Symbol
@@ -51,4 +52,3 @@ def doprint(self, funcname, args, expr):
         funclines.extend('    ' + line for line in funcbody)
 
         return '\n'.join(funclines) + '\n'
-#sym.lambdify.context()

@@ -1,6 +1,5 @@
 import sympy as sym
 import numpy as np
-import sympy.physics.mechanics as me
 from . import ExternalForce
 
 class CompositeForce(ExternalForce):

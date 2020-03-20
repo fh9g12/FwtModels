@@ -1,11 +1,5 @@
 import sympy as sym
-import sympy.physics.mechanics as me
-from scipy import integrate
 from . import ExternalForce
-
-import sys, os
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-import sympyTransforms as symt
 
 class AeroForce(ExternalForce):
 

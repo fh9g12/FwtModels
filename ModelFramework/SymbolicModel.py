@@ -4,15 +4,7 @@ import pandas as pd
 from scipy.linalg import eig
 import sympy.physics.mechanics as me
 from sympy.physics.vector.printing import vpprint, vlatex
-from sympy.utilities.codegen import codegen
-from sympy.utilities.autowrap import autowrap
-from dataclasses import dataclass, InitVar, field
 from sympy.abc import x,y,t
-
-import sys, os
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-import sympyTransforms as symt
-
 
 class SymbolicModel:
     """
@@ -58,10 +50,10 @@ class SymbolicModel:
         # Get Mass Matrix and 'internal' forcing term
         M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
         f = sym.simplify(term_1-M*p.qdd) -term_2
-        return cls(p,M,f,ExtForces)
+        return cls(p,M,f,T,U,ExtForces)
 
 
-    def __init__(self,FwtParams,M,f,ExtForces = None):
+    def __init__(self,FwtParams,M,f,T,U,ExtForces = None):
         """
         Initialise a Symbolic model of the form 
         $M\ddot{q}+f(\dot{q},q,t)-ExtForces(\dot{q},q,t) = 0$
@@ -72,6 +64,8 @@ class SymbolicModel:
 
         self.M = M
         self.f = f
+        self.T = T
+        self.U = U
 
         # set external force function
         if ExtForces == None:
@@ -85,6 +79,7 @@ class SymbolicModel:
         self.M_func = sym.lambdify((tup,p.x),self.M,"numpy")
         #func eqn
         self.f_func = sym.lambdify((tup,p.x),self.f,"numpy")
+
         # potential energy function
         self.u_eqn = sym.lambdify((tup,p.x),self.U,"numpy")
         # kinetic energy function
@@ -96,7 +91,8 @@ class SymbolicModel:
          in args applied to all the Matricies
         """
         ExtForces = self.ExtForces.subs(p,*args) if self.ExtForces is not None else None
-        return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),ExtForces)
+        return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),
+                            self.T.subs(*args),self.U.subs(*args),ExtForces)
      
 
     def deriv(self,t,x,tup):
@@ -109,4 +105,12 @@ class SymbolicModel:
             state_vc.append(accels[i,0])
         return tuple(state_vc)
 
+    #calculate the total energy in the system
+    def KineticEnergy(self,t,x,tup):
+        return self.t_eqn(*tup,x)
 
+    def PotentialEnergy(self,t,x,tup):
+        return self.u_eqn(*tup,x)
+
+    def Energy(self,t,x,tup):
+        return self.KineticEnergy(t,x,tup) + self.PotentialEnergy(t,x,tup)

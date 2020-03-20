@@ -1,14 +1,12 @@
 import sympy as sym
-import sympy.physics.mechanics as me
-import numpy as np
 from . import ExternalForce
 
-class ContinuousGravityForce(ExternalForce):
+class GravityForce(ExternalForce):
 
-    def __init__(self,FwtParams,Transform,ForceVector,*int_tuple):
+    def __init__(self,FwtParams,Transform,ForceVector):
         p = FwtParams
         # create the wrench applied at the origin of the endeffector in spetial coords
-        wrench_g = sym.Matrix([*ForceVector,0,0,0])
+        wrench_g = sym.Matrix([ForceVector[0],ForceVector[1],ForceVector[2],0,0,0])
 
         ## convert this to a spatial wrench
 
@@ -20,7 +18,6 @@ class ContinuousGravityForce(ExternalForce):
         F_s = T_trans.Adjoint().T*wrench_g
 
         # convert into joint torques
-        _dQ = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
-        _Q = _dQ.integrate(*int_tuple)
+        _Q = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
 
         super().__init__(self,p,_Q)

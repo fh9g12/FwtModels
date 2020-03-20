@@ -1,5 +1,4 @@
 import sympy as sym
-import numpy as np
 from .base_element import BaseElement
 
 class FlexiElement(BaseElement):

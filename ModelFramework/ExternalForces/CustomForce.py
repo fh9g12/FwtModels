@@ -1,6 +1,3 @@
-import sympy as sym
-import sympy.physics.mechanics as me
-import numpy as np
 from . import ExternalForce
 
 class ForcingFunction(ExternalForce):
