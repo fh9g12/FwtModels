@@ -49,7 +49,7 @@ class HomogenousTransform:
         J = sym.zeros(6,len(q))
         for i,qi in enumerate(q):
             J[:,i] = Vee(self.E.diff(qi)*inv)
-        return sym.simplify(J)
+        return sym.trigsimp(J)
 
     def Adjoint(self):
         E = sym.zeros(6,6)
