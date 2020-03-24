@@ -5,7 +5,7 @@ class ExternalForce:
     def __init__(self,FwtParams,Q):
         self._Q = Q
         tup = FwtParams.GetTuple()     
-        self.q_func = q_func = sym.lambdify((tup,FwtParams.x),self._Q,"numpy")
+        self.q_func = sym.lambdify((tup,FwtParams.x),self._Q,"numpy")
 
     def __call__(self,tup,x,t):
         return self.q_func(tup,x)
