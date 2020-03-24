@@ -11,7 +11,6 @@ class GravityForce(ExternalForce):
         ## convert this to a spatial wrench
 
         # make a frame a end effector in body frame
-        tup = tuple(Transform.t)
         T_trans = Transform.PuesdoSpatialFrame()
 
         # convert wrench into this frame

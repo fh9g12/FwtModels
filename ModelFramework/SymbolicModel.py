@@ -54,8 +54,7 @@ class SymbolicModel:
 
 
     def __init__(self,FwtParams,M,f,T,U,ExtForces = None):
-        """
-        Initialise a Symbolic model of the form 
+        """Initialise a Symbolic model of the form 
         $M\ddot{q}+f(\dot{q},q,t)-ExtForces(\dot{q},q,t) = 0$
 
         with the Symbolic Matricies M,f,and Extforces
@@ -114,9 +113,6 @@ class SymbolicModel:
             return sum((i**2 for i in res))
         res = minimize(ObjectiveFunc,p0,(t,tup))
         return res.x
-
-
-
 
     #calculate the total energy in the system
     def KineticEnergy(self,t,x,tup):

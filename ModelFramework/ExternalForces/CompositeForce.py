@@ -27,3 +27,17 @@ class CompositeForce(ExternalForce):
         for force in self.forces:
             new_forces.append(force.subs(p,*args))
         return CompositeForce(p,new_forces)
+
+    def gensource(self,name = 'Q'):
+        # add each force to the string
+        full_str = ''
+        for force,i in self.forces:
+            full_str += force.gensource(f'Q_{i}')
+        # Add the main force
+        lines = []
+        lines.append(f'def {name}(tup,x,t):')
+        lines.append(f'\tval = zeros(({self.__qs},1))')
+        for i in len(self.forces):
+            lines.append(f'\tval += Q_{i}(tup,x,t)')
+        lines.append('\treturn val')
+        return '\n'.join(lines)+'\n'
