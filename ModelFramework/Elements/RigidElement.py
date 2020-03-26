@@ -9,8 +9,8 @@ class RigidElement(BaseElement):
         self.M_e = M
 
     @classmethod
-    def PointMass(cls, Transform,m):
-        return cls(Transform,MassMatrix(m))    
+    def PointMass(cls, Transform,m,gravityPotential=False):
+        return cls(Transform,MassMatrix(m),gravityPotential)    
     
     def CalcKE(self,p):
         # create the jacobian for the mass
@@ -28,6 +28,6 @@ class RigidElement(BaseElement):
         if self._gravityPotential:
             #return 0
             p = self.Transform.Transform_point([0,0,0])
-            return p[2]*self.M_e[0,0]*-9.81
+            return p[2]*self.M_e[0,0]*9.81
         else:
             return 0
