@@ -3,7 +3,7 @@ from . import ExternalForce
 
 class AeroForce(ExternalForce):
 
-    def __init__(self,FwtParams,Transform,C_L,int_tuple,rootAlpha,delta_alpha,alphadot,M_thetadot,e):
+    def __init__(self,FwtParams,Transform,C_L,int_tuple,alphadot,M_thetadot,e,rootAlpha,deltaAlpha,alpha_zero = 0):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
 
@@ -11,7 +11,7 @@ class AeroForce(ExternalForce):
         v_z_eff = sym.simplify(Transform.BodyVelocity()[2])
 
         # combine to get effective AoA
-        self.dAlpha = rootAlpha + delta_alpha - v_z_eff/p.V
+        self.dAlpha = alpha_zero + rootAlpha + deltaAlpha - v_z_eff/p.V
 
         # Calculate the lift force
         dynamicPressure = sym.Rational(1,2)*p.rho*p.V**2
@@ -32,7 +32,7 @@ class AeroForce(ExternalForce):
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
         wrench_moment = sym.Matrix([0,0,0,0,self.dM_w,0])
-        velocity_frame = Transform.R_y(delta_alpha)
+        velocity_frame = Transform.R_y(deltaAlpha)
 
         self.dQ_M = (velocity_frame.ManipJacobian(p.q)).T
         self.dQ_M *= velocity_frame.InvAdjoint().T
