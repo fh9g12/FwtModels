@@ -104,16 +104,6 @@ class SymbolicModel:
             state_vc.append(accels[i,0])
         return tuple(state_vc)
 
-    def GetFixedPoint(self,t,p0,tup):
-        from scipy.optimize import minimize
-        v = [0]*len(p0)
-        def ObjectiveFunc(p,t,tup):           
-            x = [j for i in range(len(v)) for j in [p[i],v[i]]]
-            res = self.deriv(t,x,tup)
-            return sum((i**2 for i in res))
-        res = minimize(ObjectiveFunc,p0,(t,tup))
-        return res.x
-
     #calculate the total energy in the system
     def KineticEnergy(self,t,x,tup):
         return self.t_eqn(*tup,x)
