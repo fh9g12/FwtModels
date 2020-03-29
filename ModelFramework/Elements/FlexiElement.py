@@ -20,17 +20,20 @@ class FlexiElement(BaseElement):
         self.M_e = M
 
     def CalcKE(self, p):
-        # create the jacobian for the mass
-        
-        J = self.Transform.Translate(self.x,self.y,self.z).ManipJacobian(p.q)
-
-        #get M in world frame
-        #calculate the mass Matrix
-        M = J.T*self.M_e*J
-
+        M = self.M(p)
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
         return sym.simplify(T[0].integrate(self.x_integral,self.y_integral))
+
+    def M(self,p):
+        # create the jacobian for the mass    
+        T = self.Transform.Translate(self.x,self.y,self.z)
+        Js = T.ManipJacobian(p.q)
+        Jb = T.InvAdjoint()*Js
+        #get M in world frame
+        #calculate the mass Matrix
+        return Jb.T*self.M_e*Jb
+
 
     def CalcPE(self,p):
         #first derivative

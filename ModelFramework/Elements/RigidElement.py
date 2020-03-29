@@ -13,16 +13,20 @@ class RigidElement(BaseElement):
         return cls(Transform,MassMatrix(m),gravityPotential)    
     
     def CalcKE(self,p):
-        # create the jacobian for the mass
-        J = self.Transform.ManipJacobian(p.q)
-
-        #get M in world frame
-        #calculate the mass Matrix
-        M = J.T*self.M_e*J
+        M = self.M(p)   
 
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return T[0]
+        return sym.trigsimp(T[0])
+
+    def M(self,p):
+        # create the jacobian for the mass
+        Js = self.Transform.ManipJacobian(p.q)
+        Jb = self.Transform.InvAdjoint()*Js
+        #get M in world frame
+        #calculate the mass Matrix
+        return Jb.T*self.M_e*Jb
+
 
     def CalcPE(self,p):
         if self._gravityPotential:
