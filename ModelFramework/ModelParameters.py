@@ -9,10 +9,11 @@ class ModelValue:
         self.value = value
         super().__init__(**kwarg)
     
-    #def __call__(self,t,x):
-    #    return self.value
-
-    #def GetValue
+    def __call__(self,t,x):
+        if callable(self.value):
+            return self.value(t,x)
+        else:
+            return self.value
         
 class ModelSymbol(sym.Symbol,ModelValue):
     """
@@ -59,18 +60,20 @@ class ModelParameters:
         return model      
     
     def GetTuple(self,ignore=[]):
-        return tuple([v for k,v in vars(self).items() if isinstance(v,ModelValue) and k not in ignore and v not in ignore ])
+        return tuple(var for name,var in vars(self).items() if isinstance(var,ModelValue) and name not in ignore and var not in ignore)
     
-    def GetSubs(self,ignore=[]):
-        return {v:v.value for k,v in vars(self).items() if isinstance(v,ModelVaModelValueriable) and k not in ignore and v not in ignore}
-
+    def GetSubs(self,t,x,ignore=[]):
+        sub_dict = {}
+        for name,var in vars(self).items():
+            if isinstance(var,ModelValue) and name not in ignore and var not in ignore:
+                if isinstance(var,ModelMatrix):
+                    for i in range(len(var)):
+                        sub_dict[var[i]] = var(t,x)[i]
+                else:
+                    sub_dict[var] = var(t,x)
+        return sub_dict
+    
     def GetNumericTuple(self,x,t,ignore=[]):
-        vals = []
-        for k, v in vars(self).items():
-            if isinstance(v,ModelValue) and (k not in ignore or v not in ignore):
-                vals.append(v.value(t,x) if callable(v.value) else v.value)
-        return tuple(vals)
-        
-
+        return tuple(var(t,x) for name,var in vars(self).items() if isinstance(var,ModelValue) and name not in ignore and var not in ignore)
 
     
