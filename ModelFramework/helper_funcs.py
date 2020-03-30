@@ -40,56 +40,18 @@ def GetVh(alpha,beta,Lambda,theta):
 def GetAoA(alpha,beta,Lambda,theta):
     Vh = GetVh(alpha,beta,Lambda,theta)
     return sym.atan(Vh[2]/Vh[0])
-    
-# and function to sub in a time dependent variable without altering its derivatives
-def msub(expr,v,sub,derivatives):
-    """
-    Substitutes the symbol 'sub' with the value 'v' in the expression 'expr',
-    without changing the first 'derivatives' time derivatives of 'sub'.
-    i.e. if 'derivatives' = 2 the first two time derivatives of 'sub' will be unaffected. 
-    All other derivatives of 'sub' will become zero! (hangover of how sympy 
-    subing works, as the derivate of a constant is zero)
-    """
-    temps = list(sym.symbols(f'temps:{derivatives}'))
-    derivs = list(sym.symbols(f'temps:{derivatives+1}'))
-    derivs[0] = v
-    for i in range(1,derivatives+1):
-        derivs[i]=derivs[i-1].diff(t)
-        
-    expr = expr.subs({derivs[i]:temps[i-1] for i in range(1,derivatives+1)})
-    expr = expr.subs(v,sub)
-    expr = expr.subs({temps[i-1]:derivs[i] for i in range(1,derivatives+1)})
-    return expr
 
-def LinearEoM_func(dof2Model,FwtParams,ExtForces = None,ignore=[]):
-    p = FwtParams
-    # create complete EoM
-    Q = dof2Model.ExtForces.Q() if ExtForces is None else ExtForces.Q()
+def LineariseMatrix(M,x,x_f):
+    # reverse order of states to ensure velocities are subbed first
+    x_subs = {(x[i],x_f[i]) for i in range(-1,-len(x)-1,-1)}
 
-    EoM = dof2Model.X.subs({dof2Model.F[i]:Q[i] for i in range(0,p.qs)})
+    # get the value of M at the fixed point
+    M_f = M.subs(x_subs)
 
-    # sub all in those to ignore
-    tup = p.GetTuple(ignore)
-    eqs = (EoM.subs({v:v.value for v in tup}))
-
-    #calculate the jacobian
-    jac = eqs.jacobian(p.x)
-
-    # symbols for the fixed point values
-    lp = sym.Matrix(sym.symbols(f'lp:{p.qs*2}'))
-
-    # convert displacements
-    for i in range(0,p.qs):
-        jac = msub(jac,p.q[i],lp[i*2],2)
-
-    # convert velocities
-    for i in range(0,p.qs):
-        jac = msub(jac,p.qd[i],lp[i*2+1],1)
-    
-    tup = tuple(ignore)
-
-    # return the function
-    return sym.lambdify((*tup,lp),jac)
+    # add a gradient term for each state about the fixed point
+    for i,xi in enumerate(x):
+        M_f += M.diff(xi).subs(x_subs)*(xi-x_f[i])
+    return M_f
 
 def GetCruiseConditions(dof2Model,FwtParams,vs,initialGuess):
     p =FwtParams

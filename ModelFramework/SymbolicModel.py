@@ -5,6 +5,7 @@ from scipy.linalg import eig
 import sympy.physics.mechanics as me
 from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
+from .LambdifyExtension import msub
 
 class SymbolicModel:
     """
@@ -92,6 +93,33 @@ class SymbolicModel:
         ExtForces = self.ExtForces.subs(p,*args) if self.ExtForces is not None else None
         return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),
                             self.T.subs(*args),self.U.subs(*args),ExtForces)
+
+    def linearise(self,p):
+        """
+        Creates a new instance of the symbolic model class in which the EoM have been 
+        linearised about the fixed point p.q_0
+        """
+
+        # Calculate Matrices at the fixed point
+        # (go in reverse order so velocitys are subbed in before positon)
+        x_subs = {(p.x[i],p.fp[i]) for i in range(-1,-len(p.x)-1,-1)}
+        M_p = self.M.subs(x_subs)
+        f_p = self.f.subs(x_subs)
+        T_p = self.T.subs(x_subs)
+        U_p = self.U.subs(x_subs)
+
+        # and a term for the Gradient in each 'joint direction'
+        for i,x in enumerate(p.x):
+            M_p += self.M.diff(x).subs(x_subs)*(x-p.fp[i])
+            f_p += self.f.diff(x).subs(x_subs)*(x-p.fp[i])
+            T_p += self.T.diff(x).subs(x_subs)*(x-p.fp[i])
+            U_p += self.U.diff(x).subs(x_subs)*(x-p.fp[i])
+        
+        # Linearise the External Forces
+        extForce_p = self.ExtForces.linearise(p)
+
+        # create the linearised model and return it
+        return SymbolicModel(p,M_p,f_p,T_p,U_p,extForce_p)
      
 
     def deriv(self,t,x,tup):

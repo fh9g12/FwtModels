@@ -19,4 +19,7 @@ class CustomForce(ExternalForce):
         lines.append(f'\treturn zeros(({self.__qs},1))')
         return '\n'.join(lines)+'\n'
 
+    def linearise(self,p):
+        return self
+
         

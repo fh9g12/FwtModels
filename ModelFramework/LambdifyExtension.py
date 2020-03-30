@@ -47,3 +47,32 @@ def doprint(self, funcname, args, expr):
         funclines.extend('    ' + line for line in funcbody)
 
         return '\n'.join(funclines) + '\n'
+
+def msub(expr,v,sub,derivatives):
+    """
+    Substitutes the symbol 'sub' with the value 'v' in the expression 'expr',
+    without changing the first 'derivatives' time derivatives of 'sub'.
+    i.e. if 'derivatives' = 2 the first two time derivatives of 'sub' will be unaffected. 
+    All other derivatives of 'sub' will become zero! (hangover of how sympy 
+    subing works, as the derivate of a constant is zero)
+    """
+    from sympy import symbols
+    from sympy.abc import t 
+    temps = list(symbols(f'temps:{derivatives}'))
+
+    # get a symbol representing each symbol we need to 'save'
+    derivs = []
+    derivs.append(sub)
+    for i in range(derivatives):
+        derivs.append(derivs[-1].diff(t))
+    derivs = derivs[1:]
+
+    # replace the symbols with temparay symbols
+    expr = expr.subs({derivs[i]:temps[i] for i in range(derivatives)})
+
+    # make the actual substitiution
+    expr = expr.subs(sub,v)
+
+    # sub back in the upper derivatives
+    expr = expr.subs({temps[i]:derivs[i] for i in range(derivatives)})
+    return expr
