@@ -110,13 +110,16 @@ class SymbolicModel:
 
         # and a term for the Gradient in each 'joint direction'
         for i,x in enumerate(p.x):
-            M_p += self.M.diff(x).subs(x_subs)*(x-p.fp[i])
+            # cheating on mass matrix to make it constant....
+            # M_p += self.M.diff(x).subs(x_subs)*(x-p.fp[i])
             f_p += self.f.diff(x).subs(x_subs)*(x-p.fp[i])
             T_p += self.T.diff(x).subs(x_subs)*(x-p.fp[i])
             U_p += self.U.diff(x).subs(x_subs)*(x-p.fp[i])
         
         # Linearise the External Forces
         extForce_p = self.ExtForces.linearise(p)
+
+        #Cheat on the Mass Matrix
 
         # create the linearised model and return it
         return SymbolicModel(p,M_p,f_p,T_p,U_p,extForce_p)

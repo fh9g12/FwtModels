@@ -1,5 +1,5 @@
-from .ModelParameters import ModelParameters, ModelMatrix, ModelSymbol
-from .helper_funcs import ShapeFunctions_BN_TM,GetVh,GetAoA,LineariseMatrix
+from .ModelParameters import ModelParameters, ModelMatrix, ModelSymbol, ModelExpr
+from .helper_funcs import ShapeFunctions_BN_TM,GetVh,GetAoA,LineariseMatrix, ExtractEigenValueData
 from .SymbolicModel import SymbolicModel
 from .HomogenousTransform import HomogenousTransform,Vee,Wedge
 

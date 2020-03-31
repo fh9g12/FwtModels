@@ -1,21 +1,24 @@
 import sympy as sym
 import numpy as np
 import sympy.physics.mechanics as me
+import pandas as pd
 
-def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1000):
+def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
     # check q is the length of n+m
     if n+m != len(q):
         raise ValueError('the sum of n+m must be the same as a length of q')
-    fac = sym.Rational(1,factor)
 
+    # make factor a list the size of n+m
+    if isinstance(factor,int) | isinstance(factor,float):
+        factor = [factor]*(n+m)
     z = sym.Integer(0)
     tau = alpha_r
 
     for i in range(0,n):
-        z = z + fac*q[i]*y_s**(2+i)
+        z = z + q[i]*y_s**(2+i)/factor[i]
     for i in range(0,m):
         qi = i+n
-        tau = tau - fac*q[qi]*y_s**(i+1)
+        tau = tau - q[qi]*y_s**(i+1)/factor[n+i]
     
     z -= tau*(x-x_f)
 
@@ -75,9 +78,7 @@ def __CreateZeroVelStateIterable(q):
         yield _q
         yield 0
 
-def ExtractEigenValueData(matrix,margin=1e-9,sortby=None):
-    evals,evecs = np.linalg.eig(matrix)
-        
+def ExtractEigenValueData(evals,evecs,margin=1e-9,sortby=None):       
     # get unique eigen values
     unique = []
     unique_vecs = []

@@ -7,13 +7,20 @@ class ModelValue:
     """
     def __init__(self,value,**kwarg):
         self.value = value
+        self._dependent = False
         super().__init__(**kwarg)
     
     def __call__(self,t,x):
+        return self._GetValue(t,x)
+
+    def _GetValue(self,t,x):
         if callable(self.value):
             return self.value(t,x)
         else:
             return self.value
+
+    def GetSub(self,t,x):
+        return self(t,x)
         
 class ModelSymbol(sym.Symbol,ModelValue):
     """
@@ -33,11 +40,19 @@ class ModelMatrix(sym.Matrix,ModelValue):
     def __new__(cls,symbols,**kwargs):
         return super().__new__(cls,symbols)
 
-#class ModelExpr(ModelValue):
-#    def __init__(self,func,**kwarg):
-#        self.expr_func = func
-#    def __call__(self,t,x):
-#        return self.expr_func(t,x)
+class ModelExpr(sym.Symbol,ModelValue):
+    def __init__(self,string,func,**kwarg):
+        self.expr_func = func
+        super().__init__(**kwarg)
+
+    def _GetValue(self,t,x):
+        return self.expr_func(t,x)
+
+    def __new__(cls,string,**kwarg):
+        return super().__new__(cls,string)
+
+    def GetSub(self,t,x):
+        return self.value
     
 
 class ModelParameters:
@@ -63,15 +78,24 @@ class ModelParameters:
         return tuple(var for name,var in vars(self).items() if isinstance(var,ModelValue) and name not in ignore and var not in ignore)
     
     def GetSubs(self,t,x,ignore=[]):
+        sub_dependent_dict = {}
         sub_dict = {}
+        # put dependent substitions in first
         for name,var in vars(self).items():
             if isinstance(var,ModelValue) and name not in ignore and var not in ignore:
                 if isinstance(var,ModelMatrix):
                     for i in range(len(var)):
-                        sub_dict[var[i]] = var(t,x)[i]
+                        sub_dict[var[i]] = var.GetSub(t,x)[i]
                 else:
-                    sub_dict[var] = var(t,x)
-        return sub_dict
+                    if var._dependent:
+                        sub_dependent_dict[var] = var.GetSub(t,x)
+                    else:
+                        sub_dict[var] = var.GetSub(t,x)
+        # sub in values for dependent subsitutions
+        for key,value in sub_dependent_dict.items():
+            sub_dependent_dict[key] = value.subs(sub_dict)
+        # return combined dictionaries
+        return {**sub_dict,**sub_dependent_dict}
     
     def GetNumericTuple(self,x,t,ignore=[]):
         return tuple(var(t,x) for name,var in vars(self).items() if isinstance(var,ModelValue) and name not in ignore and var not in ignore)

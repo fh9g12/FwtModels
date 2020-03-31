@@ -14,8 +14,13 @@ def doprint(self, funcname, args, expr):
         argstrs, expr = self._preprocess(args, expr)
 
         ## --------------- Addition -----------------
-        replacments, exprs = cse(expr,symbols=(Symbol(f'rep_{i}')for i in range(100)))
-        expr = exprs[0]
+        replacments, exprs = cse(expr,symbols=(Symbol(f'rep_{i}')for i in range(1000)))
+        if isinstance(expr,tuple):
+            expr = tuple(exprs)
+        elif isinstance(expr,list):
+            expr = exprs
+        else:
+            expr = exprs[0]
         ## --------------- Addition -----------------
 
         # Generate argument unpacking and final argument list
@@ -38,7 +43,7 @@ def doprint(self, funcname, args, expr):
 
         ## --------------- Addition -----------------
         for variable, expression in replacments:
-            funcbody.append(f'{variable} = {expression}')
+            funcbody.append(f'{variable} = {self._exprrepr(expression)}')
         ## --------------- Addition -----------------
 
         funcbody.append('return ({})'.format(self._exprrepr(expr)))
