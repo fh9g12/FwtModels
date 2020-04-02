@@ -1,6 +1,7 @@
 import sympy as sym
 from . import ExternalForce
 from ..LambdifyExtension import msub
+from ..helper_funcs import LineariseMatrix
 
 class AeroForce(ExternalForce):
 
@@ -49,21 +50,19 @@ class AeroForce(ExternalForce):
     def __init__(self,p,Q,dAlpha):
         tup = p.GetTuple()
         self.dAlpha = dAlpha
-        self.dAlpha_func = sym.lambdify((tup,p.x),dAlpha,"numpy")
+        self.dAlpha_func = sym.lambdify((tup,p.x,p.y_1),dAlpha,"numpy")
         super().__init__(p,Q)       
 
-    def GetAlpha(self,tup,x,t,**kwargs):
-        return self.dAlpha_func(tup,x)
+    def GetAlpha(self,tup,x,t,y):
+        return self.dAlpha_func(tup,x,y)
 
     def linearise(self,p):
-        x_subs = {(p.x[i],p.fp[i]) for i in range(-1,-len(p.x)-1,-1)}
-        Q = self.Q()
-        Q_p = Q.subs(x_subs)
-        dAlpha_p = self.dAlpha.subs(x_subs)
-        for i,x in enumerate(p.x):
-            Q_p += Q.diff(x).subs(x_subs)*(x-p.fp[i])
-            dAlpha_p += self.dAlpha.diff(x).subs(x_subs)*(x-p.fp[i])
-        return AeroForce(p,Q_p,dAlpha_p)
+        Q_lin = LineariseMatrix(self.Q(),p.x,p.fp)
+        dAlpha_lin = LineariseMatrix(self.dAlpha,p.x,p.fp)
+        return AeroForce(p,Q_lin,dAlpha_lin)
+    
+    def subs(self,p,*args):
+        return AeroForce(p,self._Q.subs(*args),self.dAlpha.subs(*args))
 
 
 
