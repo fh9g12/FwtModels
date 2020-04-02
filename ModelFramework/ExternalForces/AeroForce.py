@@ -30,7 +30,7 @@ class AeroForce(ExternalForce):
 
         dQ_L = (velocity_frame.ManipJacobian(p.q)).T
         dQ_L *= velocity_frame.InvAdjoint().T
-        dQ_L = sym.trigsimp(dQ_L) # generally some sin^2 + cos^2 in here
+        dQ_L = dQ_L# generally some sin^2 + cos^2 in here
         dQ_L *= wrench_lift
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
@@ -50,11 +50,7 @@ class AeroForce(ExternalForce):
     def __init__(self,p,Q,dAlpha):
         tup = p.GetTuple()
         self.dAlpha = dAlpha
-        self.dAlpha_func = sym.lambdify((tup,p.x,p.y_1),dAlpha,"numpy")
         super().__init__(p,Q)       
-
-    def GetAlpha(self,tup,x,t,y):
-        return self.dAlpha_func(tup,x,y)
 
     def linearise(self,p):
         Q_lin = LineariseMatrix(self.Q(),p.x,p.fp)
