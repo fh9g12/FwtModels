@@ -51,7 +51,7 @@ class SymbolicModel:
 
         # Get Mass Matrix and 'internal' forcing term
         M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
-        f = sym.simplify(term_1-M*p.qdd) -term_2
+        f = sym.expand(term_1-M*p.qdd) -term_2
         return cls(p,M,f,T,U,ExtForces)
 
 
