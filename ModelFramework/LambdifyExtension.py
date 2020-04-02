@@ -53,7 +53,7 @@ def doprint(self, funcname, args, expr):
 
         return '\n'.join(funclines) + '\n'
 
-def msub(expr,v,sub,derivatives):
+def msub(expr,*args):
     """
     Substitutes the symbol 'sub' with the value 'v' in the expression 'expr',
     without changing the first 'derivatives' time derivatives of 'sub'.
@@ -63,21 +63,29 @@ def msub(expr,v,sub,derivatives):
     """
     from sympy import symbols
     from sympy.abc import t 
-    temps = list(symbols(f'temps:{derivatives}'))
 
-    # get a symbol representing each symbol we need to 'save'
-    derivs = []
-    derivs.append(sub)
-    for i in range(derivatives):
-        derivs.append(derivs[-1].diff(t))
-    derivs = derivs[1:]
+    if len(args) == 1:
+        subs = args[0]
+    elif len(args) == 3:
+        subs = ((args),)
+    else:
+        raise ValueError('args must either be a iterable of subs or symbol,sub,derivitive triples')
 
-    # replace the symbols with temparay symbols
-    expr = expr.subs({derivs[i]:temps[i] for i in range(derivatives)})
+    for symbol,sub,derivatives in subs:
+        temps = list(symbols(f'temps:{derivatives}'))
+        # get a symbol representing each symbol we need to 'save'
+        derivs = []
+        derivs.append(symbol)
+        for i in range(derivatives):
+            derivs.append(derivs[-1].diff(t))
+        derivs = derivs[1:]
 
-    # make the actual substitiution
-    expr = expr.subs(sub,v)
+        # replace the symbols with temparay symbols
+        expr = expr.subs({derivs[i]:temps[i] for i in range(derivatives)})
 
-    # sub back in the upper derivatives
-    expr = expr.subs({temps[i]:derivs[i] for i in range(derivatives)})
+        # make the actual substitiution
+        expr = expr.subs(symbol,sub)
+
+        # sub back in the upper derivatives
+        expr = expr.subs({temps[i]:derivs[i] for i in range(derivatives)})
     return expr
