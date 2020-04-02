@@ -31,7 +31,7 @@ class RigidElement(BaseElement):
     def CalcPE(self,p):
         if self._gravityPotential:
             #return 0
-            p = self.Transform.Transform_point([0,0,0])
-            return p[2]*self.M_e[0,0]*9.81
+            point = self.Transform.Transform_point([0,0,0])
+            return point[2]*self.M_e[0,0]*p.g
         else:
             return 0
