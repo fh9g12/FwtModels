@@ -2,6 +2,7 @@ import sympy as sym
 import numpy as np
 import sympy.physics.mechanics as me
 import pandas as pd
+from .LambdifyExtension import msub
 
 def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
     # check q is the length of n+m
@@ -46,12 +47,13 @@ def GetAoA(alpha,beta,Lambda,theta):
 
 def LineariseMatrix(M,x,x_f):
     # reverse order of states to ensure velocities are subbed first
-    x_subs = {(x[i],x_f[i]) for i in range(-1,-len(x)-1,-1)}
+    x_subs = [[x[i],x_f[i],2] for i in range(len(x))]
 
     # get the value of M at the fixed point
-    M_f = M.subs(x_subs)
+    M_f = msub(M,x_subs)
 
     # add a gradient term for each state about the fixed point
+    x_subs = {(x[i],x_f[i]) for i in range(-1,-len(x)-1,-1)}
     for i,xi in enumerate(x):
         M_f += M.diff(xi).subs(x_subs)*(xi-x_f[i])
     return M_f
@@ -85,7 +87,7 @@ def ExtractEigenValueData(evals,evecs,margin=1e-9,sortby=None):
     for idx,val in enumerate(evals):
         if np.iscomplex(val):
             # check the complex conjugate is not already in the list
-            if np.conj(val) not in unique:
+            if not any(np.isclose(np.conj(val),unique)):
                 unique.append(val)
                 unique_vecs.append(evecs[:,idx])
         else:

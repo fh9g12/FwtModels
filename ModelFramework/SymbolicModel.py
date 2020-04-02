@@ -6,6 +6,7 @@ import sympy.physics.mechanics as me
 from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
 from .LambdifyExtension import msub
+from .helper_funcs import LineariseMatrix
 
 class SymbolicModel:
     """
@@ -91,39 +92,60 @@ class SymbolicModel:
          in args applied to all the Matricies
         """
         ExtForces = self.ExtForces.subs(p,*args) if self.ExtForces is not None else None
+
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else self.T.subs(*args)
+        U = self.U if isinstance(self.U,int) else self.U.subs(*args)
         return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),
-                            self.T.subs(*args),self.U.subs(*args),ExtForces)
+                            T,U,ExtForces)
 
     def linearise(self,p):
         """
         Creates a new instance of the symbolic model class in which the EoM have been 
         linearised about the fixed point p.q_0
         """
-
         # Calculate Matrices at the fixed point
         # (go in reverse order so velocitys are subbed in before positon)
         x_subs = {(p.x[i],p.fp[i]) for i in range(-1,-len(p.x)-1,-1)}
-        M_p = self.M.subs(x_subs)
-        f_p = self.f.subs(x_subs)
-        T_p = self.T.subs(x_subs)
-        U_p = self.U.subs(x_subs)
 
-        # and a term for the Gradient in each 'joint direction'
-        for i,x in enumerate(p.x):
-            # cheating on mass matrix to make it constant....
-            # M_p += self.M.diff(x).subs(x_subs)*(x-p.fp[i])
-            f_p += self.f.diff(x).subs(x_subs)*(x-p.fp[i])
-            T_p += self.T.diff(x).subs(x_subs)*(x-p.fp[i])
-            U_p += self.U.diff(x).subs(x_subs)*(x-p.fp[i])
-        
+
+        # get the full EoM's for free vibration and linearise
+        eom = self.M*p.qdd + self.f
+        eom_lin = LineariseMatrix(eom,p.x,p.fp)
+
+        #extract linearised M
+        M_lin = eom_lin.jacobian(p.qdd)
+
+        #extract linerised f
+        f_lin = (eom_lin - M_lin*p.qdd).doit().expand()
+
         # Linearise the External Forces
-        extForce_p = self.ExtForces.linearise(p)
-
-        #Cheat on the Mass Matrix
+        extForce_lin = self.ExtForces.linearise(p)
 
         # create the linearised model and return it
-        return SymbolicModel(p,M_p,f_p,T_p,U_p,extForce_p)
-     
+        return SymbolicModel(p,M_lin,f_lin,0,0,extForce_lin)
+
+    def eigenMatrices(self,p):
+        """
+        gets the genralised eigan matrices for use in solving the frequencies / modes. 
+        They are of the form:
+            |   I   0   |       |   0   I   |
+        M=  |   0   M   |   ,K= |   D   E   |
+        such that scipy.linalg.eig(K,M) solves the problem 
+
+        THE SYSTEM MUST BE LINEARISED FOR THIS TO WORK
+        """
+        M_prime = sym.eye(p.qs*2)
+        M_prime[-p.qs:,-p.qs:]=self.M
+
+        f = (self.ExtForces.Q()-self.f)
+
+        K_prime = sym.zeros(p.qs*2)
+        K_prime[:p.qs,-p.qs:] = sym.eye(p.qs)
+        K_prime[-p.qs:,:p.qs] = f.jacobian(p.q)
+        K_prime[-p.qs:,-p.qs:] = f.jacobian(p.qd)
+
+        return K_prime, M_prime
 
     def deriv(self,t,x,tup):
         external = self.ExtForces(tup,x,t)
