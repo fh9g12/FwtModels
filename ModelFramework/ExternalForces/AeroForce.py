@@ -30,7 +30,7 @@ class AeroForce(ExternalForce):
 
         dQ_L = (velocity_frame.ManipJacobian(p.q)).T
         dQ_L *= velocity_frame.InvAdjoint().T
-        dQ_L = dQ_L# generally some sin^2 + cos^2 in here
+        dQ_L = sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(dQ_L))))
         dQ_L *= wrench_lift
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
@@ -39,6 +39,7 @@ class AeroForce(ExternalForce):
 
         dQ_M = (velocity_frame.ManipJacobian(p.q)).T
         dQ_M *= velocity_frame.InvAdjoint().T
+        dQ_M = sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(dQ_M))))
         dQ_M *= wrench_moment
 
         dQ = dQ_L + dQ_M

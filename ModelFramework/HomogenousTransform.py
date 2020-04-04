@@ -49,7 +49,7 @@ class HomogenousTransform:
         J = sym.zeros(6,len(q))
         for i,qi in enumerate(q):
             J[:,i] = Vee(self.E.diff(qi)*inv)
-        return sym.trigsimp(J)
+        return J
 
     def Adjoint(self):
         E = sym.zeros(6,6)
@@ -100,27 +100,6 @@ class HomogenousTransform:
         H = sym.eye(4)
         H[:3,:3]=sym.Matrix([[sym.cos(angle),-sym.sin(angle),0],
                             [sym.sin(angle),sym.cos(angle),0],
-                            [0,0,1]])
-        return HomogenousTransform(self.E*H)
-
-    def R_x_small(self,angle):
-        H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,0,0],
-                            [0,1,-angle],
-                            [0,angle,1]])
-        return HomogenousTransform(self.E*H)
-
-    def R_y_small(self,angle):
-        H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,0,angle],
-                            [0,1,0],
-                            [-angle,0,1]])
-        return HomogenousTransform(self.E*H)
-
-    def R_z_small(self,angle):
-        H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,-angle,0],
-                            [angle,1,0],
                             [0,0,1]])
         return HomogenousTransform(self.E*H)
 
