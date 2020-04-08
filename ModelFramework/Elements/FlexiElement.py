@@ -25,8 +25,8 @@ class FlexiElement(BaseElement):
     def CalcKE(self, p):
         M = self.M(p)
         # calculate the K.E
-        T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return sym.trigsimp(T[0].integrate(self.x_integral,self.y_integral)).expand()
+        T = sym.Rational(1,2)*p.qd.T*(M.integrate(self.x_integral,self.y_integral))*p.qd
+        return T[0].expand()
 
     
     def M(self,p):
