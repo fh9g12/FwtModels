@@ -11,7 +11,7 @@ class AeroForce(ExternalForce):
         ## force per unit length will following theredosons pseado-steady theory
 
         # add z velocity due to motion
-        v_z_eff = sym.simplify(Transform.BodyVelocity()[2])
+        v_z_eff = cls._trigsimp(sym.simplify(Transform.BodyVelocity()[2]))
 
         # combine to get effective AoA
         dAlpha = alpha_zero + rootAlpha + deltaAlpha - v_z_eff/p.V
@@ -30,7 +30,7 @@ class AeroForce(ExternalForce):
 
         dQ_L = (velocity_frame.ManipJacobian(p.q)).T
         dQ_L *= velocity_frame.InvAdjoint().T
-        dQ_L = sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(dQ_L))))
+        dQ_L =cls._trigsimp(dQ_L)
         dQ_L *= wrench_lift
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
@@ -39,7 +39,7 @@ class AeroForce(ExternalForce):
 
         dQ_M = (velocity_frame.ManipJacobian(p.q)).T
         dQ_M *= velocity_frame.InvAdjoint().T
-        dQ_M = sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(dQ_M))))
+        dQ_M = cls._trigsimp(dQ_M)
         dQ_M *= wrench_moment
 
         dQ = dQ_L + dQ_M
@@ -51,7 +51,11 @@ class AeroForce(ExternalForce):
     def __init__(self,p,Q,dAlpha):
         tup = p.GetTuple()
         self.dAlpha = dAlpha
-        super().__init__(p,Q)       
+        super().__init__(p,Q) 
+
+    @staticmethod
+    def _trigsimp(expr):
+        return sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(expr))))      
 
     def linearise(self,p):
         Q_lin = LineariseMatrix(self.Q(),p.x,p.fp)
