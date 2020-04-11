@@ -6,27 +6,33 @@ from ..helper_funcs import LineariseMatrix
 
 class ExternalForce:
 
-    def __init__(self,FwtParams,Q):
-        from sympy.abc import t     
+    def __init__(self,Q = None):
         self._Q = Q
-        tup = FwtParams.GetTuple()
-        self.q_func = sym.lambdify((tup,FwtParams.x,t),self._Q,"numpy")
 
-    def __call__(self,tup,x,t):
-        return self.q_func(tup,x,t)
+    def __mul__(self,other):
+        return ExternalForce(self._Q*other)
 
     def Q(self):
         return self._Q
 
-    def subs(self,p,*args):
-        return ExternalForce(p,self._Q.subs(*args))
+    def subs(self,*args):
+        return ExternalForce(self._Q.subs(*args))
 
-    def gensource(self,name = 'Q'):
-        source_str = getsource(self.q_func)
-        return source_str.replace('_lambdifygenerated',name)
+    def integrate(self,*args):
+        return ExternalForce(self._Q.integrate(*args))
 
-    def linearise(self,p):
-        return ExternalForce(p,LineariseMatrix(self.Q(),p.x,p.fp))
+    def linearise(self,x,x_f):
+        return ExternalForce(LineariseMatrix(self.Q(),x,x_f))
+
+    def lambdify(self,params):
+        if self._Q is None:
+            return None
+        return sym.lambdify(params,self._Q ,"numpy")
+
+
+
+
+    
 
 
 

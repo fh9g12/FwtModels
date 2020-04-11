@@ -7,6 +7,7 @@ from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
 from .LambdifyExtension import msub
 from .helper_funcs import LineariseMatrix
+from .NumericModel import NumericModel   
 
 class SymbolicModel:
     """
@@ -68,23 +69,10 @@ class SymbolicModel:
         self.T = T
         self.U = U
 
-        # set external force function
-        if ExtForces == None:
-            self.ExtForces = lambda tup,x,t:[0]*int(len(x)/2)
-        else:
-            self.ExtForces = ExtForces
+        self.ExtForces = ExtForces
 
-        #generate lambda functions
-        tup = p.GetTuple()
-        # Mass Matrix Eqn
-        self.M_func = sym.lambdify((tup,p.x),self.M,"numpy")
-        #func eqn
-        self.f_func = sym.lambdify((tup,p.x),self.f,"numpy")
-
-        # potential energy function
-        self.u_eqn = sym.lambdify((tup,p.x),self.U,"numpy")
-        # kinetic energy function
-        self.t_eqn = sym.lambdify((tup,p.x),self.T,"numpy")
+    def CreateNumericModel(self,p):
+        return NumericModel(p,self.M,self.f,self.T,self.U,self.ExtForces)
 
     def subs(self,p,*args):
         """
@@ -106,8 +94,6 @@ class SymbolicModel:
         """
         # Calculate Matrices at the fixed point
         # (go in reverse order so velocitys are subbed in before positon)
-        x_subs = {(p.x[i],p.fp[i]) for i in range(-1,-len(p.x)-1,-1)}
-
 
         # get the full EoM's for free vibration and linearise
         eom = self.M*p.qdd + self.f
@@ -120,7 +106,7 @@ class SymbolicModel:
         f_lin = (eom_lin - M_lin*p.qdd).doit().expand()
 
         # Linearise the External Forces
-        extForce_lin = self.ExtForces.linearise(p)
+        extForce_lin = self.ExtForces.linearise(p.x,p.fp) if self.ExtForces is not None else None
 
         # create the linearised model and return it
         return SymbolicModel(p,M_lin,f_lin,0,0,extForce_lin)
@@ -138,7 +124,9 @@ class SymbolicModel:
         M_prime = sym.eye(p.qs*2)
         M_prime[-p.qs:,-p.qs:]=self.M
 
-        f = (self.ExtForces.Q()-self.f)
+        _Q = self.ExtForces.Q() if self.ExtForces is not None else sym.Matrix([0]*p.qs)
+
+        f = (_Q-self.f)
 
         K_prime = sym.zeros(p.qs*2)
         K_prime[:p.qs,-p.qs:] = sym.eye(p.qs)
@@ -146,23 +134,3 @@ class SymbolicModel:
         K_prime[-p.qs:,-p.qs:] = f.jacobian(p.qd)
 
         return K_prime, M_prime
-
-    def deriv(self,t,x,tup):
-        external = self.ExtForces(tup,x,t)
-        accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x)+external)
-
-        state_vc = []
-        for i in range(0,int(len(x)/2)):
-            state_vc.append(x[(i)*2+1])
-            state_vc.append(accels[i,0])
-        return tuple(state_vc)
-
-    #calculate the total energy in the system
-    def KineticEnergy(self,t,x,tup):
-        return self.t_eqn(*tup,x)
-
-    def PotentialEnergy(self,t,x,tup):
-        return self.u_eqn(*tup,x)
-
-    def Energy(self,t,x,tup):
-        return self.KineticEnergy(t,x,tup) + self.PotentialEnergy(t,x,tup)
