@@ -31,8 +31,11 @@ class NumericModel:
         self.t_eqn = sym.lambdify((tup,p.x),T,"numpy")
 
     def deriv(self,t,x,tup):
-        external = self.ExtForces(tup,x,t)
-        accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x)+external)
+        try:
+            external = self.ExtForces(tup,x,t)
+            accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x)+external)
+        except ZeroDivisionError:
+            accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x))        
 
         state_vc = []
         for i in range(0,int(len(x)/2)):

@@ -8,7 +8,8 @@ class CompositeForce(ExternalForce):
         self.forces = forces
 
     def Q(self):
-        return None
+        filt = filter(None,(f.Q() for f in self.forces))
+        return sum(filt,next(filt))
 
     def subs(self,*args):
         return CompositeForce([force.subs(*args) for force in self.forces])

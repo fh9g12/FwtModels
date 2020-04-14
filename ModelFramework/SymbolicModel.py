@@ -53,17 +53,15 @@ class SymbolicModel:
         # Get Mass Matrix and 'internal' forcing term
         M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
         f = sym.expand(term_1-M*p.qdd) -term_2
-        return cls(p,M,f,T,U,ExtForces)
+        return cls(M,f,T,U,ExtForces)
 
 
-    def __init__(self,FwtParams,M,f,T,U,ExtForces = None):
+    def __init__(self,M,f,T,U,ExtForces = None):
         """Initialise a Symbolic model of the form 
         $M\ddot{q}+f(\dot{q},q,t)-ExtForces(\dot{q},q,t) = 0$
 
         with the Symbolic Matricies M,f,and Extforces
         """
-        p = FwtParams
-
         self.M = M
         self.f = f
         self.T = T
@@ -74,17 +72,17 @@ class SymbolicModel:
     def CreateNumericModel(self,p):
         return NumericModel(p,self.M,self.f,self.T,self.U,self.ExtForces)
 
-    def subs(self,p,*args):
+    def subs(self,*args):
         """
         Creates a new instance of a Symbolic model with the substutions supplied
          in args applied to all the Matricies
         """
-        ExtForces = self.ExtForces.subs(p,*args) if self.ExtForces is not None else None
+        ExtForces = self.ExtForces.subs(*args) if self.ExtForces is not None else None
 
         # handle zero kinetic + pot energies
         T = self.T if isinstance(self.T,int) else self.T.subs(*args)
         U = self.U if isinstance(self.U,int) else self.U.subs(*args)
-        return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),
+        return SymbolicModel(self.M.subs(*args),self.f.subs(*args),
                             T,U,ExtForces)
 
     def linearise(self,p):
@@ -109,14 +107,45 @@ class SymbolicModel:
         extForce_lin = self.ExtForces.linearise(p.x,p.fp) if self.ExtForces is not None else None
 
         # create the linearised model and return it
-        return SymbolicModel(p,M_lin,f_lin,0,0,extForce_lin)
+        return SymbolicModel(M_lin,f_lin,0,0,extForce_lin)
 
-    def eigenMatrices(self,p):
+    def ExtractMatrices(self,p):
+        """
+        From the current symbolic model extacts the classic matrices A,B,C,D,E as per the equation below
+        A \ddot{q} + B\dot{q} + Cq = D\dot{q} + Eq
+        """
+        A = self.M
+        B = self.f.jacobian(p.qd)
+        C = self.f.jacobian(p.q)
+        D = self.ExtForces.Q().jacobian(p.qd)
+        E = self.ExtForces.Q().jacobian(p.q)
+        return A,B,C,D,E
+
+    def FreeBodyEigenProblem(self,p):
+        """
+        gets the genralised eigan matrices for the free body problem.
+        They are of the form:
+            |   I   0   |       |    0    I   |
+        M=  |   0   M   |   ,K= |   -C   -B   |
+        such that scipy.linalg.eig(K,M) solves the problem 
+
+        THE SYSTEM MUST BE LINEARISED FOR THIS TO WORK
+        """
+        M = sym.eye(p.qs*2)
+        M[-p.qs:,-p.qs:]=self.M
+
+        K = sym.zeros(p.qs*2)
+        K[:p.qs,-p.qs:] = sym.eye(p.qs)
+        K[-p.qs:,:p.qs] = -self.f.jacobian(p.q)
+        K[-p.qs:,-p.qs:] = -self.f.jacobian(p.qd)
+        return K,M
+
+    def GeneralEigenProblem(self,p):
         """
         gets the genralised eigan matrices for use in solving the frequencies / modes. 
         They are of the form:
-            |   I   0   |       |   0   I   |
-        M=  |   0   M   |   ,K= |   D   E   |
+            |   I   0   |       |    0    I   |
+        M=  |   0   M   |   ,K= |   E-C  D-B  |
         such that scipy.linalg.eig(K,M) solves the problem 
 
         THE SYSTEM MUST BE LINEARISED FOR THIS TO WORK

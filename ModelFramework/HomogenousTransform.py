@@ -41,13 +41,13 @@ class HomogenousTransform:
     def BodyJacobian(self,q):
         return self.InvAdjoint()*self.ManipJacobian(q)
 
-    #def __mul__(self,other):
-    #    if isinstance(other,HomogenousTransform):
-    #        return HomogenousTransform(self.E*other.E)  
-    #    elif isinstance(other,sym.MutableDenseMatrix):
-    #        return HomogenousTransform(self.E*other)
-    #    else:
-    #        raise TypeError(f'Can not multiple a Homogenouc Transform by type {type(other)}')
+    def __mul__(self,other):
+        if isinstance(other,HomogenousTransform):
+            return HomogenousTransform(self.E*other.E)  
+        elif isinstance(other,sym.MutableDenseMatrix):
+            return HomogenousTransform(self.E*other)
+        else:
+            raise TypeError(f'Can not multiple a Homogenouc Transform by type {type(other)}')
 
     def Inverse(self):
         E = sym.eye(4)
