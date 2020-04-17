@@ -17,15 +17,19 @@ class RigidElement(BaseElement):
 
         # calculate the K.E
         T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return sym.trigsimp(T[0])
+        return self._trigsimp(T[0])
 
     def M(self,p):
         # create the jacobian for the mass
         Js = self.Transform.ManipJacobian(p.q)
         Jb = self.Transform.InvAdjoint()*Js
+        Jb = self._trigsimp(Jb)
         #get M in world frame
         #calculate the mass Matrix
         return Jb.T*self.M_e*Jb
+
+    def _trigsimp(self,expr):
+        return sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(expr))))
 
 
     def CalcPE(self,p):

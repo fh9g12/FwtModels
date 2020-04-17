@@ -25,26 +25,30 @@ class FlexiElement(BaseElement):
     def CalcKE(self, p):
         M = self.M(p)
         # calculate the K.E
-        T = sym.Rational(1,2)*p.qd.T*M*p.qd
-        return sym.trigsimp(T[0].integrate(self.x_integral,self.y_integral)).expand()
+        T = sym.Rational(1,2)*p.qd.T*(M.integrate(self.x_integral,self.y_integral))*p.qd
+        return T[0].expand()
 
     
     def M(self,p):
         # create the jacobian for the mass    
         Js = self.dTransform.ManipJacobian(p.q)
         Jb = self.dTransform.InvAdjoint()*Js
+        Jb = self._trigsimp(Jb)
         #calculate the mass Matrix in world frame
         return Jb.T*self.M_e*Jb
+
+    def _trigsimp(self,expr):
+        return sym.trigsimp(sym.powsimp(sym.cancel(sym.expand(expr))))
 
 
     def CalcElasticPE(self,p):
         # Bending Potential Energy per unit length
         v = self.dTransform.subs(self.x,self.x_f).diff(self.y,self.y).Transform_point([0,0,0])
-        U_e = sym.trigsimp((v.T*v))[0]*self.EI*sym.Rational(1,2)
+        U_e = self._trigsimp((v.T*v))[0]*self.EI*sym.Rational(1,2)
 
         # Torsional P.E per unit length
         v = self.dTransform.diff(self.x).diff(self.y).Transform_point([self.x_f,0,0])
-        U_e += sym.trigsimp((v.T*v))[0]*self.GJ*sym.Rational(1,2)
+        U_e += self._trigsimp((v.T*v))[0]*self.GJ*sym.Rational(1,2)
 
         return U_e.integrate(self.y_integral)
 

@@ -7,6 +7,8 @@ from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
 from .LambdifyExtension import msub
 from .helper_funcs import LineariseMatrix
+from .NumericModel import NumericModel
+import pickle
 
 class SymbolicModel:
     """
@@ -52,51 +54,74 @@ class SymbolicModel:
         # Get Mass Matrix and 'internal' forcing term
         M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
         f = sym.expand(term_1-M*p.qdd) -term_2
-        return cls(p,M,f,T,U,ExtForces)
+        return cls(M,f,T,U,ExtForces)
 
 
-    def __init__(self,FwtParams,M,f,T,U,ExtForces = None):
+    def __init__(self,M,f,T,U,ExtForces = None):
         """Initialise a Symbolic model of the form 
         $M\ddot{q}+f(\dot{q},q,t)-ExtForces(\dot{q},q,t) = 0$
 
         with the Symbolic Matricies M,f,and Extforces
         """
-        p = FwtParams
-
         self.M = M
         self.f = f
         self.T = T
         self.U = U
 
-        # set external force function
-        if ExtForces == None:
-            self.ExtForces = lambda tup,x,t:[0]*int(len(x)/2)
-        else:
-            self.ExtForces = ExtForces
+        self.ExtForces = ExtForces
 
-        #generate lambda functions
-        tup = p.GetTuple()
-        # Mass Matrix Eqn
-        self.M_func = sym.lambdify((tup,p.x),self.M,"numpy")
-        #func eqn
-        self.f_func = sym.lambdify((tup,p.x),self.f,"numpy")
+    def CreateNumericModel(self,p):
+        return NumericModel(p,self.M,self.f,self.T,self.U,self.ExtForces)
 
-        # potential energy function
-        self.u_eqn = sym.lambdify((tup,p.x),self.U,"numpy")
-        # kinetic energy function
-        self.t_eqn = sym.lambdify((tup,p.x),self.T,"numpy")
+    def cancel(self):
+        """
+        Creates a new instance of a Symbolic model with the cancel simplifcation applied
+        """
+        ExtForces = self.ExtForces.cancel() if self.ExtForces is not None else None
 
-    def subs(self,p,*args):
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else sym.cancel(self.T)
+        U = self.U if isinstance(self.U,int) else sym.cancel(self.U)
+        return SymbolicModel(sym.cancel(self.M),sym.cancel(self.f),
+                            T,U,ExtForces)
+
+    def expand(self):
+        """
+        Creates a new instance of a Symbolic model with the cancel simplifcation applied
+        """
+        ExtForces = self.ExtForces.expand() if self.ExtForces is not None else None
+
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else sym.expand(self.T)
+        U = self.U if isinstance(self.U,int) else sym.expand(self.U)
+        return SymbolicModel(sym.expand(self.M),sym.expand(self.f),
+                            T,U,ExtForces)
+
+
+    def subs(self,*args):
         """
         Creates a new instance of a Symbolic model with the substutions supplied
          in args applied to all the Matricies
         """
-        ExtForces = self.ExtForces.subs(p,*args) if self.ExtForces is not None else None
+        ExtForces = self.ExtForces.subs(*args) if self.ExtForces is not None else None
 
         # handle zero kinetic + pot energies
         T = self.T if isinstance(self.T,int) else self.T.subs(*args)
         U = self.U if isinstance(self.U,int) else self.U.subs(*args)
-        return SymbolicModel(p,self.M.subs(*args),self.f.subs(*args),
+        return SymbolicModel(self.M.subs(*args),self.f.subs(*args),
+                            T,U,ExtForces)
+
+    def msubs(self,*args):
+        """
+        Creates a new instance of a Symbolic model with the substutions supplied
+         in args applied to all the Matricies
+        """
+        ExtForces = self.ExtForces.msubs(*args) if self.ExtForces is not None else None
+
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else me.msubs(self.T,*args)
+        U = self.U if isinstance(self.U,int) else me.msubs(self.U,*args)
+        return SymbolicModel(me.msubs(self.M,*args),me.msubs(self.f,*args),
                             T,U,ExtForces)
 
     def linearise(self,p):
@@ -106,8 +131,6 @@ class SymbolicModel:
         """
         # Calculate Matrices at the fixed point
         # (go in reverse order so velocitys are subbed in before positon)
-        x_subs = {(p.x[i],p.fp[i]) for i in range(-1,-len(p.x)-1,-1)}
-
 
         # get the full EoM's for free vibration and linearise
         eom = self.M*p.qdd + self.f
@@ -120,17 +143,48 @@ class SymbolicModel:
         f_lin = (eom_lin - M_lin*p.qdd).doit().expand()
 
         # Linearise the External Forces
-        extForce_lin = self.ExtForces.linearise(p)
+        extForce_lin = self.ExtForces.linearise(p.x,p.fp) if self.ExtForces is not None else None
 
         # create the linearised model and return it
-        return SymbolicModel(p,M_lin,f_lin,0,0,extForce_lin)
+        return SymbolicModel(M_lin,f_lin,0,0,extForce_lin)
 
-    def eigenMatrices(self,p):
+    def ExtractMatrices(self,p):
+        """
+        From the current symbolic model extacts the classic matrices A,B,C,D,E as per the equation below
+        A \ddot{q} + B\dot{q} + Cq = D\dot{q} + Eq
+        """
+        A = self.M
+        B = self.f.jacobian(p.qd)
+        C = self.f.jacobian(p.q)
+        D = self.ExtForces.Q().jacobian(p.qd)
+        E = self.ExtForces.Q().jacobian(p.q)
+        return A,B,C,D,E
+
+    def FreeBodyEigenProblem(self,p):
+        """
+        gets the genralised eigan matrices for the free body problem.
+        They are of the form:
+            |   I   0   |       |    0    I   |
+        M=  |   0   M   |   ,K= |   -C   -B   |
+        such that scipy.linalg.eig(K,M) solves the problem 
+
+        THE SYSTEM MUST BE LINEARISED FOR THIS TO WORK
+        """
+        M = sym.eye(p.qs*2)
+        M[-p.qs:,-p.qs:]=self.M
+
+        K = sym.zeros(p.qs*2)
+        K[:p.qs,-p.qs:] = sym.eye(p.qs)
+        K[-p.qs:,:p.qs] = -self.f.jacobian(p.q)
+        K[-p.qs:,-p.qs:] = -self.f.jacobian(p.qd)
+        return K,M
+
+    def GeneralEigenProblem(self,p):
         """
         gets the genralised eigan matrices for use in solving the frequencies / modes. 
         They are of the form:
-            |   I   0   |       |   0   I   |
-        M=  |   0   M   |   ,K= |   D   E   |
+            |   I   0   |       |    0    I   |
+        M=  |   0   M   |   ,K= |   E-C  D-B  |
         such that scipy.linalg.eig(K,M) solves the problem 
 
         THE SYSTEM MUST BE LINEARISED FOR THIS TO WORK
@@ -138,7 +192,9 @@ class SymbolicModel:
         M_prime = sym.eye(p.qs*2)
         M_prime[-p.qs:,-p.qs:]=self.M
 
-        f = (self.ExtForces.Q()-self.f)
+        _Q = self.ExtForces.Q() if self.ExtForces is not None else sym.Matrix([0]*p.qs)
+
+        f = (_Q-self.f)
 
         K_prime = sym.zeros(p.qs*2)
         K_prime[:p.qs,-p.qs:] = sym.eye(p.qs)
@@ -147,22 +203,41 @@ class SymbolicModel:
 
         return K_prime, M_prime
 
-    def deriv(self,t,x,tup):
-        external = self.ExtForces(tup,x,t)
-        accels = np.linalg.inv(self.M_func(tup,x))@(-self.f_func(tup,x)+external)
+    def to_file(self,filename):
+        #Get string represtations
+        M_code = "def get_M():\n\t"+sym.printing.python(self.M).replace('\n','\n\t')+"\n\treturn e\n"
+        f_code = "def get_f():\n\t"+sym.printing.python(self.f).replace('\n','\n\t')+"\n\treturn e\n"
+        T_code = "def get_T():\n\t"+sym.printing.python(self.T).replace('\n','\n\t')+"\n\treturn e\n"
+        U_code = "def get_U():\n\t"+sym.printing.python(self.U).replace('\n','\n\t')+"\n\treturn e\n"
+        Q_code = "def get_Q():\n\t"+sym.printing.python(self.ExtForces.Q()).replace('\n','\n\t')+"\n\treturn e\n"
 
-        state_vc = []
-        for i in range(0,int(len(x)/2)):
-            state_vc.append(x[(i)*2+1])
-            state_vc.append(accels[i,0])
-        return tuple(state_vc)
+        #Combine and add import statements
+        full_code = "from sympy import *\n"+M_code+f_code+T_code+U_code+Q_code
 
-    #calculate the total energy in the system
-    def KineticEnergy(self,t,x,tup):
-        return self.t_eqn(*tup,x)
+        # Save to the file
+        t_file = open(filename,"w")
+        n = t_file.write(full_code)
+        t_file.close()   
 
-    def PotentialEnergy(self,t,x,tup):
-        return self.u_eqn(*tup,x)
 
-    def Energy(self,t,x,tup):
-        return self.KineticEnergy(t,x,tup) + self.PotentialEnergy(t,x,tup)
+    @classmethod
+    def from_file(cls,filename):
+        import importlib.util
+        from .ExternalForces import ExternalForce
+        spec = importlib.util.spec_from_file_location("my.Model", filename)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+
+        M = m.get_M()
+        f = m.get_f()
+        T = m.get_T()
+        U = m.get_U()
+        _Q = m.get_Q()
+        ExtForce = ExternalForce(_Q)
+        return cls(M,f,T,U,ExtForce)
+
+
+
+
+
+

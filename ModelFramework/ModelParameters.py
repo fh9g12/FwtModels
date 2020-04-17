@@ -90,12 +90,14 @@ class ModelParameters:
                     if var._dependent:
                         sub_dependent_dict[var] = var.GetSub(t,x)
                     else:
-                        sub_dict[var] = var.GetSub(t,x)
+                        sub_dict[sym.Symbol(var.name)] = var.GetSub(t,x)
         # sub in values for dependent subsitutions
         for key,value in sub_dependent_dict.items():
             sub_dependent_dict[key] = value.subs(sub_dict)
-        # return combined dictionaries
-        return {**sub_dict,**sub_dependent_dict}
+        #combine dictionaries
+        tot_sub_dict = {**sub_dict,**sub_dependent_dict}
+        # return a dictionary with all keys changed to symbols
+        return tot_sub_dict#{sym.Symbol(k.name):v for k,v in tot_sub_dict.items()}
     
     def GetNumericTuple(self,x,t,ignore=[]):
         return tuple(var(t,x) for name,var in vars(self).items() if isinstance(var,ModelValue) and name not in ignore and var not in ignore)

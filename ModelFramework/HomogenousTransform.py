@@ -38,6 +38,17 @@ class HomogenousTransform:
         self.R = self.E[:3,:3].copy()
         self.t = self.E[:3,3].copy()
 
+    def BodyJacobian(self,q):
+        return self.InvAdjoint()*self.ManipJacobian(q)
+
+    def __mul__(self,other):
+        if isinstance(other,HomogenousTransform):
+            return HomogenousTransform(self.E*other.E)  
+        elif isinstance(other,sym.MutableDenseMatrix):
+            return HomogenousTransform(self.E*other)
+        else:
+            raise TypeError(f'Can not multiple a Homogenouc Transform by type {type(other)}')
+
     def Inverse(self):
         E = sym.eye(4)
         E[:3,:3] = self.R.T
@@ -49,7 +60,7 @@ class HomogenousTransform:
         J = sym.zeros(6,len(q))
         for i,qi in enumerate(q):
             J[:,i] = Vee(self.E.diff(qi)*inv)
-        return sym.trigsimp(J)
+        return J
 
     def Adjoint(self):
         E = sym.zeros(6,6)
@@ -81,47 +92,19 @@ class HomogenousTransform:
         E[:3,:3] = sym.eye(3)
         return HomogenousTransform(E)
 
-
     def R_x(self,angle):
         H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,0,0],
-                            [0,sym.cos(angle),-sym.sin(angle)],
-                            [0,sym.sin(angle),sym.cos(angle)]])
+        H[:3,:3]=sym.rot_axis1(-angle)
         return HomogenousTransform(self.E*H)
 
     def R_y(self,angle):
         H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[sym.cos(angle),0,sym.sin(angle)],
-                            [0,1,0],
-                            [-sym.sin(angle),0,sym.cos(angle)]])
+        H[:3,:3]=sym.rot_axis2(-angle)
         return HomogenousTransform(self.E*H)
 
     def R_z(self,angle):
         H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[sym.cos(angle),-sym.sin(angle),0],
-                            [sym.sin(angle),sym.cos(angle),0],
-                            [0,0,1]])
-        return HomogenousTransform(self.E*H)
-
-    def R_x_small(self,angle):
-        H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,0,0],
-                            [0,1,-angle],
-                            [0,angle,1]])
-        return HomogenousTransform(self.E*H)
-
-    def R_y_small(self,angle):
-        H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,0,angle],
-                            [0,1,0],
-                            [-angle,0,1]])
-        return HomogenousTransform(self.E*H)
-
-    def R_z_small(self,angle):
-        H = sym.eye(4)
-        H[:3,:3]=sym.Matrix([[1,-angle,0],
-                            [angle,1,0],
-                            [0,0,1]])
+        H[:3,:3]=sym.rot_axis3(-angle)
         return HomogenousTransform(self.E*H)
 
     def Translate(self,x,y,z):

@@ -3,8 +3,7 @@ from . import ExternalForce
 
 class ContinuousGravityForce(ExternalForce):
 
-    def __init__(self,FwtParams,Transform,ForceVector,*int_tuple):
-        p = FwtParams
+    def __init__(self,q,Transform,ForceVector,*int_tuple):
         # create the wrench applied at the origin of the endeffector in spetial coords
         wrench_g = sym.Matrix([*ForceVector,0,0,0])
 
@@ -17,7 +16,7 @@ class ContinuousGravityForce(ExternalForce):
         F_s = T_trans.Adjoint().T*wrench_g
 
         # convert into joint torques
-        _dQ = sym.simplify(T_trans.ManipJacobian(p.q).T*F_s)
+        _dQ = sym.simplify(T_trans.ManipJacobian(q).T*F_s)
         _Q = _dQ.integrate(*int_tuple)
 
-        super().__init__(p,_Q)
+        super().__init__(_Q)

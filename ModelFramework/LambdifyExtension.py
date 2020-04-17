@@ -14,7 +14,7 @@ def doprint(self, funcname, args, expr):
         argstrs, expr = self._preprocess(args, expr)
 
         ## --------------- Addition -----------------
-        replacments, exprs = cse(expr,symbols=(Symbol(f'rep_{i}')for i in range(1000)))
+        replacments, exprs = cse(expr,symbols=(Symbol(f'rep_{i}')for i in range(10000)))
         if isinstance(expr,tuple):
             expr = tuple(exprs)
         elif isinstance(expr,list):

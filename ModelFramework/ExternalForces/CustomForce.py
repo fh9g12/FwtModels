@@ -2,24 +2,31 @@ from . import ExternalForce
 
 class CustomForce(ExternalForce):
 
-    def __init__(self,Params,Forcingfunction):
+    def __init__(self,Forcingfunction):
         self.q_func = Forcingfunction
-        self.__qs = Params.qs
 
     def Q(self):
         return None
     
-    def subs(self,p,*args):
+    def subs(self,*args):
         return self
 
-    def gensource(self,name = 'Q'):
-        # Add the main force
-        lines = []
-        lines.append(f'def {name}(tup,x,t):')
-        lines.append(f'\treturn zeros(({self.__qs},1))')
-        return '\n'.join(lines)+'\n'
-
-    def linearise(self,p):
+    def msubs(self,*args):
         return self
+
+    def cancel(self):
+        return self
+
+    def expand(self):
+        return self
+
+    def integrate(self,*args):
+        return self
+
+    def linearise(self,x,x_f):
+        return self
+
+    def lambdify(self,params):
+        return self.q_func   
 
         
