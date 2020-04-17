@@ -7,7 +7,8 @@ from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
 from .LambdifyExtension import msub
 from .helper_funcs import LineariseMatrix
-from .NumericModel import NumericModel   
+from .NumericModel import NumericModel
+import pickle
 
 class SymbolicModel:
     """
@@ -72,6 +73,31 @@ class SymbolicModel:
     def CreateNumericModel(self,p):
         return NumericModel(p,self.M,self.f,self.T,self.U,self.ExtForces)
 
+    def cancel(self):
+        """
+        Creates a new instance of a Symbolic model with the cancel simplifcation applied
+        """
+        ExtForces = self.ExtForces.cancel() if self.ExtForces is not None else None
+
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else sym.cancel(self.T)
+        U = self.U if isinstance(self.U,int) else sym.cancel(self.U)
+        return SymbolicModel(sym.cancel(self.M),sym.cancel(self.f),
+                            T,U,ExtForces)
+
+    def expand(self):
+        """
+        Creates a new instance of a Symbolic model with the cancel simplifcation applied
+        """
+        ExtForces = self.ExtForces.expand() if self.ExtForces is not None else None
+
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else sym.expand(self.T)
+        U = self.U if isinstance(self.U,int) else sym.expand(self.U)
+        return SymbolicModel(sym.expand(self.M),sym.expand(self.f),
+                            T,U,ExtForces)
+
+
     def subs(self,*args):
         """
         Creates a new instance of a Symbolic model with the substutions supplied
@@ -83,6 +109,19 @@ class SymbolicModel:
         T = self.T if isinstance(self.T,int) else self.T.subs(*args)
         U = self.U if isinstance(self.U,int) else self.U.subs(*args)
         return SymbolicModel(self.M.subs(*args),self.f.subs(*args),
+                            T,U,ExtForces)
+
+    def msubs(self,*args):
+        """
+        Creates a new instance of a Symbolic model with the substutions supplied
+         in args applied to all the Matricies
+        """
+        ExtForces = self.ExtForces.msubs(*args) if self.ExtForces is not None else None
+
+        # handle zero kinetic + pot energies
+        T = self.T if isinstance(self.T,int) else me.msubs(self.T,*args)
+        U = self.U if isinstance(self.U,int) else me.msubs(self.U,*args)
+        return SymbolicModel(me.msubs(self.M,*args),me.msubs(self.f,*args),
                             T,U,ExtForces)
 
     def linearise(self,p):
@@ -163,3 +202,42 @@ class SymbolicModel:
         K_prime[-p.qs:,-p.qs:] = f.jacobian(p.qd)
 
         return K_prime, M_prime
+
+    def to_file(self,filename):
+        #Get string represtations
+        M_code = "def get_M():\n\t"+sym.printing.python(self.M).replace('\n','\n\t')+"\n\treturn e\n"
+        f_code = "def get_f():\n\t"+sym.printing.python(self.f).replace('\n','\n\t')+"\n\treturn e\n"
+        T_code = "def get_T():\n\t"+sym.printing.python(self.T).replace('\n','\n\t')+"\n\treturn e\n"
+        U_code = "def get_U():\n\t"+sym.printing.python(self.U).replace('\n','\n\t')+"\n\treturn e\n"
+        Q_code = "def get_Q():\n\t"+sym.printing.python(self.ExtForces.Q()).replace('\n','\n\t')+"\n\treturn e\n"
+
+        #Combine and add import statements
+        full_code = "from sympy import *\n"+M_code+f_code+T_code+U_code+Q_code
+
+        # Save to the file
+        t_file = open(filename,"w")
+        n = t_file.write(full_code)
+        t_file.close()   
+
+
+    @classmethod
+    def from_file(cls,filename):
+        import importlib.util
+        from .ExternalForces import ExternalForce
+        spec = importlib.util.spec_from_file_location("my.Model", filename)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+
+        M = m.get_M()
+        f = m.get_f()
+        T = m.get_T()
+        U = m.get_U()
+        _Q = m.get_Q()
+        ExtForce = ExternalForce(_Q)
+        return cls(M,f,T,U,ExtForce)
+
+
+
+
+
+
