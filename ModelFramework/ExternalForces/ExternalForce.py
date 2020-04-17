@@ -1,6 +1,6 @@
 import sympy as sym
+import sympy.physics.mechanics as me
 from inspect import getsource
-from ..LambdifyExtension import msub
 from ..helper_funcs import LineariseMatrix
 
 
@@ -17,6 +17,15 @@ class ExternalForce:
 
     def subs(self,*args):
         return ExternalForce(self._Q.subs(*args))
+
+    def msubs(self,*args):
+        return ExternalForce(me.msubs(self._Q,*args))
+
+    def cancel(self):
+        return ExternalForce(sym.cancel(self._Q))  
+
+    def expand(self):
+        return ExternalForce(sym.expand(self._Q))  
 
     def integrate(self,*args):
         return ExternalForce(self._Q.integrate(*args))

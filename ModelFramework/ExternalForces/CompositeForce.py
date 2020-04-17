@@ -14,6 +14,15 @@ class CompositeForce(ExternalForce):
     def subs(self,*args):
         return CompositeForce([force.subs(*args) for force in self.forces])
 
+    def msubs(self,*args):
+        return CompositeForce([force.msubs(*args) for force in self.forces])
+
+    def cancel(self):
+        return CompositeForce([force.cancel() for force in self.forces])
+
+    def expand(self):
+        return CompositeForce([force.expand() for force in self.forces])
+
     def linearise(self,x,x_f):
         return CompositeForce([force.linearise(x,x_f) for force in self.forces])
 

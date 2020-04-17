@@ -11,6 +11,15 @@ class CustomForce(ExternalForce):
     def subs(self,*args):
         return self
 
+    def msubs(self,*args):
+        return self
+
+    def cancel(self):
+        return self
+
+    def expand(self):
+        return self
+
     def integrate(self,*args):
         return self
 
