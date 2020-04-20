@@ -1,1 +1,1 @@
-from .generate import GenRectWingModel
+from .generate import GenRectWingModel,Gen2DofModel
