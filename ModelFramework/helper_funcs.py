@@ -1,8 +1,8 @@
 import sympy as sym
 import numpy as np
 import sympy.physics.mechanics as me
+from sympy.abc import t
 import pandas as pd
-from .LambdifyExtension import msub
 
 def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
     # check q is the length of n+m

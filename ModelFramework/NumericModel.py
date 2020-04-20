@@ -2,7 +2,6 @@ import sympy as sym
 import numpy as np
 import pandas as pd
 from scipy.linalg import eig
-from .LambdifyExtension import msub
 from .helper_funcs import LineariseMatrix
 
 class NumericModel:

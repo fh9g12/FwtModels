@@ -5,7 +5,6 @@ from scipy.linalg import eig
 import sympy.physics.mechanics as me
 from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
-from .LambdifyExtension import msub
 from .helper_funcs import LineariseMatrix
 from .NumericModel import NumericModel
 import pickle
@@ -134,7 +133,10 @@ class SymbolicModel:
 
         # get the full EoM's for free vibration and linearise
         eom = self.M*p.qdd + self.f
-        eom_lin = LineariseMatrix(eom,p.x,p.fp)
+
+        x = [ j for i in range(len(p.q)) for j in [p.q[i],p.qd[i],p.qdd[i]]]
+        fp = [ j for i in range(len(p.q)) for j in [p.fp[::2][i],p.fp[1::2][i],0]]
+        eom_lin = LineariseMatrix(eom,x,fp)
 
         #extract linearised M
         M_lin = eom_lin.jacobian(p.qdd)

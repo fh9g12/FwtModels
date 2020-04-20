@@ -1,7 +1,7 @@
 import sympy as sym
 from . import ExternalForce
-from ..LambdifyExtension import msub
 from ..helper_funcs import LineariseMatrix
+import sympy.physics.mechanics as me
 
 class AeroForce_1(ExternalForce):
 
@@ -55,6 +55,9 @@ class AeroForce_1(ExternalForce):
     
     def subs(self,*args):
         return AeroForce_1(self._Q.subs(*args),self.dAlpha.subs(*args))
+
+    def msubs(self,*args):
+        return AeroForce_1(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
 
     def integrate(self,*args):
         return AeroForce_1(self._Q.integrate(*args),self.dAlpha)

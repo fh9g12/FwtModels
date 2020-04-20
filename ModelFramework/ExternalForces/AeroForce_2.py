@@ -1,10 +1,9 @@
 import sympy as sym
 from . import ExternalForce
-from ..LambdifyExtension import msub
 from ..helper_funcs import LineariseMatrix
+import sympy.physics.mechanics as me
 
 class AeroForce_2(ExternalForce):
-
     @classmethod
     def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0):
         p = FwtParams
@@ -49,6 +48,9 @@ class AeroForce_2(ExternalForce):
     
     def subs(self,*args):
         return AeroForce_2(self._Q.subs(*args),self.dAlpha.subs(*args))
+
+    def msubs(self,*args):
+        return AeroForce_2(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
 
     def integrate(self,*args):
         return AeroForce_2(self._Q.integrate(*args),self.dAlpha)

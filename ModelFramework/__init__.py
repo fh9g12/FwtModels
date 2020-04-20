@@ -6,5 +6,5 @@ from .HomogenousTransform import HomogenousTransform,Vee,Wedge
 
 # monkey patch lambdify to use common sub expression reduction
 from sympy.utilities.lambdify import _EvaluatorPrinter
-from .LambdifyExtension import doprint, msub
+from .LambdifyExtension import doprint
 _EvaluatorPrinter.doprint = doprint

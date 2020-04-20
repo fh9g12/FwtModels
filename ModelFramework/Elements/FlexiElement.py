@@ -1,5 +1,6 @@
 import sympy as sym
 from .BaseElement import BaseElement
+from sympy.physics.mechanics import msubs
 
 class FlexiElement(BaseElement):
     def __init__(self,Transform,M,x,y,z,c,s,x_f,EI,GJ,gravityPot = False):
@@ -43,7 +44,7 @@ class FlexiElement(BaseElement):
 
     def CalcElasticPE(self,p):
         # Bending Potential Energy per unit length
-        v = self.dTransform.subs(self.x,self.x_f).diff(self.y,self.y).Transform_point([0,0,0])
+        v = self.dTransform.msubs({self.x:self.x_f}).diff(self.y,self.y).Transform_point([0,0,0])
         U_e = self._trigsimp((v.T*v))[0]*self.EI*sym.Rational(1,2)
 
         # Torsional P.E per unit length
