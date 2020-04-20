@@ -23,16 +23,15 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
 
     model_mini = model.msubs(p.GetSubs(0,p.fp,ignore=variables))
     model_lin = model_mini.linearise(p)
-    fp_v = p.fp[1::2]
-    model_mini_lin = model_lin.msubs(p.GetSubs(0,p.fp,ignore=variables)).msubs({i:0 for i in fp_v})
 
     # get eigen Matrices and turn into a function
-    K,M = model_mini_lin.GeneralEigenProblem(p)
-    func = sym.lambdify((variables+[p.fp[::2]]),(K,M))
+    K,M = model_lin.GeneralEigenProblem(p)
 
-    def func_no_nan(*args):
-        k,m = func(*args)
-        return np.where(np.isnan(k),0,k),np.where(np.isnan(m),0,m)
+    #get free body problem
+    K_v0 = msubs(K,{sym.Symbol(p.V.name):0})
+    M_v0 = msubs(M,{sym.Symbol(p.V.name):0})
+    func = sym.lambdify((variables,p.fp),(K,M))
+    func_v0 = sym.lambdify((variables,p.fp),(K_v0,M_v0))
 
     # If caluclating fixed points generate require objective functions
     if calc_fixed_points:
@@ -67,7 +66,12 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
             q=[0]*p.qs
 
         qs.append(q)
-        evals, evecs = eig(*func_no_nan(*values,q))
+        x = [0]*p.qs*2
+        x[::2] = q
+        if string_perms[i]["V"] == 0:
+            evals, evecs = eig(*func_v0(values,x))
+        else:
+            evals, evecs = eig(*func(values,x))
 
         jac_dat = mf.ExtractEigenValueData_list(evals,evecs,sortby='F')
         #create q and perm data to match size
