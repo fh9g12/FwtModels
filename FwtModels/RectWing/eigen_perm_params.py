@@ -49,7 +49,8 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
     #Calc freqs and dampings
     flutdfv2 = []
     qs = []
-    for i in range(len(df_perms)):      
+    for i in range(len(df_perms)):
+        values = tuple([v for k,v in df_perms[i]])      
         # Calc fixed point
         #set the initial guess (if v=0 set to FWT dropped doen else use previous result)
         if calc_fixed_points:
@@ -59,8 +60,7 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
             elif i == 0:
                 guess = [0]*p.qs
             else:
-                guess = qs[-1]          
-            values = tuple([v for k,v in df_perms[i]])
+                guess = qs[-1]                      
             q = fsolve(lambda q,v: func_obj(q,values)[:,0],guess,fprime = func_jac_obj ,factor = 1,args=(values,))    
         else:
             q=[0]*p.qs
