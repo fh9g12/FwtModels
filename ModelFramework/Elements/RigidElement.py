@@ -3,10 +3,11 @@ from .BaseElement import BaseElement
 from .MassMatrix import MassMatrix
 
 class RigidElement(BaseElement):
-    def __init__(self,Transform,M,gravityPotential=False):
+    def __init__(self,Transform,M,gravityPotential=False,com_pos = [0,0,0]):
         self._gravityPotential = gravityPotential
         self.Transform = Transform
         self.M_e = M
+        self.com_pos = com_pos
 
     @classmethod
     def PointMass(cls, Transform,m,gravityPotential=False):
@@ -35,7 +36,7 @@ class RigidElement(BaseElement):
     def CalcPE(self,p):
         if self._gravityPotential:
             #return 0
-            point = self.Transform.Transform_point([0,0,0])
+            point = self.Transform.Transform_point(self.com_pos)
             return point[2]*self.M_e[0,0]*p.g
         else:
             return 0
