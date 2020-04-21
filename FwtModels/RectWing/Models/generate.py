@@ -11,7 +11,7 @@ import ModelFramework.ExternalForces as ef
 import FwtModels.RectWing as rw
 import sympy.physics.mechanics as me
 
-def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot):
+def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot,fwt_Iyy=False,fwt_ke_simp=False):
     p = rw.base_params(b_modes+t_modes+1)
 
     #get shape functions for main wing
@@ -30,10 +30,20 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot):
     
     #Create Elemnts
     M_wing = ele.MassMatrix(p.rho_t)
-    M_fwt = ele.MassMatrix(p.m_1,I_xx = p.I_xx_1)
+    
 
     inner_wing_ele = ele.FlexiElement(wing_root_frame,M_wing,p.x_0,p.y_0,z_0,p.c,p.s_0,p.x_f0,p.EI,p.GJ,gravityPot=True)
-    fwt_ele = ele.RigidElement(fwt_com_frame,M_fwt,True)
+
+    I_yy = 0 
+    if fwt_Iyy:
+        I_yy += sym.Rational(1,2)*p.m_1*p.c + p.m_1*(p.c/2)**2
+    if fwt_ke_simp:
+        M_fwt = ele.MassMatrix(p.m_1,I_xx = p.I_xx_1+p.m_1*(p.s_1/2)**2,I_yy=I_yy)
+        fwt_ele = ele.RigidElement(fwt_root_frame,M_fwt,True,com_pos=[0,p.s_1/2,0])
+    else:
+        M_fwt = ele.MassMatrix(p.m_1,I_xx = p.I_xx_1,I_yy = I_yy)
+        fwt_ele = ele.RigidElement(fwt_com_frame,M_fwt,True)
+
 
     # Create AeroForces
     wing_AeroForces = ef.AeroForce_1.PerUnitSpan(p,wing_flexural_frame,p.a_0,
