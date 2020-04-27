@@ -9,7 +9,7 @@ import sys,os
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 import ModelFramework as mf
 
-def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
+def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True):
     """
     Method to generate the flutter results for a model for each permutation of the parms in param_perms:
     p - instance of Model Parameters
@@ -22,10 +22,11 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
     variables = [k for k,v in vars_ls]
 
     model_mini = model.msubs(p.GetSubs(0,p.fp,ignore=variables))
-    model_lin = model_mini.linearise(p)
+    #model_lin = model_mini.linearise(p)
 
     # get eigen Matrices and turn into a function
-    K,M = model_lin.GeneralEigenProblem(p)
+    #K,M = model_lin.GeneralEigenProblem(p)
+    K,M = model_mini.GeneralEigenProblemLin(p)
 
     #get free body problem
     K_v0 = msubs(K,{sym.Symbol(p.V.name):0})
@@ -36,8 +37,9 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
     # If caluclating fixed points generate require objective functions
     if calc_fixed_points:
         f = msubs((model_mini.f-model_mini.ExtForces.Q()),{i:0 for i in p.qd})
-        func_obj = sym.lambdify((p.q,variables),f)
-        func_jac_obj = sym.lambdify((p.q,variables),f.jacobian(p.q),"numpy")
+        func_obj = sym.lambdify((p.q,variables),f,"numpy")
+        if jac:
+            func_jac_obj = sym.lambdify((p.q,variables),f.jacobian(p.q),"numpy")
 
 
     # Get all possible combinations of the variables
@@ -60,8 +62,11 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points):
             elif i == 0:
                 guess = [0]*p.qs
             else:
-                guess = qs[-1]                      
-            q = fsolve(lambda q,v: func_obj(q,values)[:,0],guess,fprime = func_jac_obj ,factor = 1,args=(values,))    
+                guess = qs[-1]
+            if jac:
+                q = fsolve(lambda q,v: func_obj(q,values)[:,0],guess,fprime = func_jac_obj ,factor = 1,args=(values,))    
+            else:                     
+                q = fsolve(lambda q,v: func_obj(q,values)[:,0],guess,factor = 1,args=(values,))    
         else:
             q=[0]*p.qs
 

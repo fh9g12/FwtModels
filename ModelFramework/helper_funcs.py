@@ -53,6 +53,7 @@ def LineariseMatrix(M,x,x_f):
     M_f = me.msubs(M,x_subs)
 
     # add a gradient term for each state about the fixed point
+    
     for i,xi in enumerate(x):
         M_f += me.msubs(M.diff(xi),x_subs)*(xi-x_f[i])
     return M_f

@@ -13,6 +13,10 @@ def base_params(generalised_coords):
     p.rho_t = mf.ModelSymbol(value = 20,string = 'rho_t') # per per unit area (kg/m^2)
     p.ratio_fwt = mf.ModelSymbol(value = 0.2,string = 'sigma') # percentage of wing that is a FWT
 
+    p.c_dmax = mf.ModelSymbol(value = 0,string = 'c_dmax') # percentage of wing that is a FWT
+    p.clip_factor = mf.ModelSymbol(value = 100, string = 'mu') # roundedness of C_l Curve
+    p.alpha_s = mf.ModelSymbol(value = np.deg2rad(15),string = 'alpha_s') # stall Angle
+
 
     # Respective spans
     p.s_0 =  p.s_t*(1-p.ratio_fwt) # span of inner wing

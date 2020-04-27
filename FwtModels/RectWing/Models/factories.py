@@ -10,8 +10,15 @@ import ModelFramework.Elements as ele
 import ModelFramework.ExternalForces as ef
 import FwtModels.RectWing as rw
 import sympy.physics.mechanics as me
+from enum import Enum
 
-def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot,fwt_Iyy=False,fwt_ke_simp=False):
+class AeroModel(Enum):
+    LiftOnly = 1
+    LiftOnly_rot = 2
+    LiftAndDrag_rot = 3
+
+
+def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_Iyy=False,fwt_ke_simp=False,aero_model=AeroModel.LiftOnly):
     p = rw.base_params(b_modes+t_modes+1)
 
     #get shape functions for main wing
@@ -30,7 +37,6 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot,fwt_Iyy=False,fwt
     
     #Create Elemnts
     M_wing = ele.MassMatrix(p.rho_t)
-    
 
     inner_wing_ele = ele.FlexiElement(wing_root_frame,M_wing,p.x_0,p.y_0,z_0,p.c,p.s_0,p.x_f0,p.EI,p.GJ,gravityPot=True)
 
@@ -60,19 +66,8 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot,fwt_Iyy=False,fwt
     if fwt_free:
         alpha_fwt +=  p.alpha_1
         alphadot_fwt += p.alphadot_1
-    #if iwt:
-    #    tau_s0 = tau_0.subs(p.y_0,p.s_0)
-    #    alpha_fwt += tau_s0
-    #    alphadot_fwt += tau_s0.diff(t)
 
-    if fwt_frot:
-        fwt_AeroForces_perUnit = ef.AeroForce_2.PerUnitSpan(p,fwt_flexural_frame,p.a_1,
-                            alphadot = p.alphadot_1,
-                            M_thetadot = p.M_thetadot,
-                            e = p.e_1,
-                            rootAlpha = p.alpha_1,
-                            alpha_zero = 0)
-    else:
+    if aero_model == AeroModel.LiftOnly:
         fwt_AeroForces_perUnit = ef.AeroForce_1.PerUnitSpan(p,fwt_flexural_frame,p.a_1,
                             alphadot = p.alphadot_1,
                             M_thetadot = p.M_thetadot,
@@ -80,7 +75,23 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_frot,fwt_Iyy=False,fwt
                             rootAlpha = p.alpha_1,
                             deltaAlpha = 0, 
                             alpha_zero = 0)
-
+    elif aero_model == AeroModel.LiftOnly_rot:
+        fwt_AeroForces_perUnit = ef.AeroForce_2.PerUnitSpan(p,fwt_flexural_frame,p.a_1,
+                            alphadot = p.alphadot_1,
+                            M_thetadot = p.M_thetadot,
+                            e = p.e_1,
+                            rootAlpha = p.alpha_1,
+                            alpha_zero = 0,
+                            include_drag = False)
+    else:
+        fwt_AeroForces_perUnit = ef.AeroForce_3.PerUnitSpan(p,fwt_flexural_frame,p.a_1,
+                            alphadot = p.alphadot_1,
+                            M_thetadot = p.M_thetadot,
+                            e = p.e_1,
+                            rootAlpha = p.alpha_1,
+                            alpha_zero = 0,
+                            stall_angle=p.alpha_s,
+                            c_d_max=p.c_dmax)
     forces = []
     segments = 5
     for i in range(segments):

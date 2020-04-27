@@ -3,9 +3,9 @@ from . import ExternalForce
 from ..helper_funcs import LineariseMatrix
 import sympy.physics.mechanics as me
 
-class AeroForce_2(ExternalForce):
+class AeroForce_3(ExternalForce):
     @classmethod
-    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,include_drag=False):
+    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,stall_angle=0.24,c_d_max = 1):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
 
@@ -19,23 +19,23 @@ class AeroForce_2(ExternalForce):
 
         # Calculate the lift force
         dynamicPressure = sym.Rational(1,2)*p.rho*p.V**2
-        L_w = dynamicPressure*p.c*C_L*dAlpha
+        c_l = C_L*(1/p.clip_factor*sym.ln((1+sym.exp(p.clip_factor*(dAlpha+stall_angle)))/(1+sym.exp(p.clip_factor*(dAlpha-stall_angle))))-stall_angle)
+        #c_l = C_L*stall_angle*sym.tanh(dAlpha/(C_L*stall_angle))
+        #c_l = C_L*dAlpha
+        c_d = c_d_max*sym.Rational(1,2)*(1-sym.cos(2*dAlpha))
+        #c_d=0
 
-        # Calulate the pitching Moment
-        M_w = L_w*e*p.c # Moment due to lift
-        M_w += dynamicPressure*p.c**2*(M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
-
-        ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
         ang = rootAlpha - v_z_eff/p.V
 
-        if include_drag:
-            F_x = L_w*(sym.sin(ang) + sym.cos(ang)*p.ratio_DL)
-            F_z = L_w*(sym.cos(ang) - sym.sin(ang)*p.ratio_DL)
-        else:
-            F_x = L_w*sym.sin(ang)
-            F_z = L_w*sym.cos(ang)
+        c_n = c_l*sym.cos(ang)+c_d*sym.sin(ang)
 
-        wrench = sym.Matrix([F_x,0,F_z,0,M_w,0])
+        F_n = dynamicPressure*p.c*c_n
+
+        # Calulate the pitching Moment
+        M_w = F_n*e*p.c # Moment due to lift
+        M_w += dynamicPressure*p.c**2*(M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
+
+        wrench = sym.Matrix([0,0,F_n,0,M_w,0])
 
         _Q = BodyJacobian.T*wrench
 
@@ -52,16 +52,16 @@ class AeroForce_2(ExternalForce):
     def linearise(self,x,x_f):
         Q_lin = LineariseMatrix(self.Q(),x,x_f)
         dAlpha_lin = LineariseMatrix(self.dAlpha,x,x_f)
-        return AeroForce_2(Q_lin,dAlpha_lin)
+        return AeroForce_3(Q_lin,dAlpha_lin)
     
     def subs(self,*args):
-        return AeroForce_2(self._Q.subs(*args),self.dAlpha.subs(*args))
+        return AeroForce_3(self._Q.subs(*args),self.dAlpha.subs(*args))
 
     def msubs(self,*args):
-        return AeroForce_2(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
+        return AeroForce_3(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
 
     def integrate(self,*args):
-        return AeroForce_2(self._Q.integrate(*args),self.dAlpha)
+        return AeroForce_3(self._Q.integrate(*args),self.dAlpha)
 
 
 

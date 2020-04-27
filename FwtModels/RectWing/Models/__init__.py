@@ -1,1 +1,1 @@
-from .generate import GenRectWingModel,Gen2DofModel
+from .factories import GenRectWingModel,Gen2DofModel,AeroModel
