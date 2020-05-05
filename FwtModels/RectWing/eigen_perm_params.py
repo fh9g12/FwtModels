@@ -2,14 +2,14 @@ import sympy as sym
 import numpy as np
 import pandas as pd
 from scipy.linalg import eig
-from scipy.optimize import fsolve
+from scipy.optimize import fsolve,least_squares
 from sympy.physics.mechanics import msubs
 
 import sys,os
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 import ModelFramework as mf
 
-def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True):
+def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen=None):
     """
     Method to generate the flutter results for a model for each permutation of the parms in param_perms:
     p - instance of Model Parameters
@@ -36,10 +36,18 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True):
 
     # If caluclating fixed points generate require objective functions
     if calc_fixed_points:
-        f = msubs((model_mini.f-model_mini.ExtForces.Q()),{i:0 for i in p.qd})
+        if fixed_point_gen is None:
+            f = msubs((model_mini.f-model_mini.ExtForces.Q()),{i:0 for i in p.qd})
+        else:
+            f = fixed_point_gen(model_mini)
+        f_v0 = msubs(f,{sym.Symbol(p.V.name):0})
+
         func_obj = sym.lambdify((p.q,variables),f,"numpy")
+        func_obj_v0 = sym.lambdify((p.q,variables),f_v0,"numpy")
+
         if jac:
             func_jac_obj = sym.lambdify((p.q,variables),f.jacobian(p.q),"numpy")
+            #func_jac_obj_v0 = sym.lambdify((p.q,variables),f_v0.jacobian(p.q),"numpy")
 
 
     # Get all possible combinations of the variables
@@ -59,14 +67,12 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True):
             if string_perms[i]["V"] == 0:
                 guess = [0]*p.qs
                 guess[-1] = np.pi/2
-            elif i == 0:
-                guess = [0]*p.qs
+                q = fsolve(lambda q,v: func_obj_v0(q,v)[:,0],guess,factor = 1,args=(values,))  
             else:
-                guess = qs[-1]
-            if jac:
-                q = fsolve(lambda q,v: func_obj(q,values)[:,0],guess,fprime = func_jac_obj ,factor = 1,args=(values,))    
-            else:                     
-                q = fsolve(lambda q,v: func_obj(q,values)[:,0],guess,factor = 1,args=(values,))    
+                guess = [0]*p.qs
+                guess[-1] =0.1
+                #guess = [0]*p.qs if i==0 else qs[-1]
+                q = least_squares(lambda q,v:func_obj(q,values)[:,0],guess,method='dogbox',jac=func_jac_obj if jac else '2-point',args = (values,)).x
         else:
             q=[0]*p.qs
 
