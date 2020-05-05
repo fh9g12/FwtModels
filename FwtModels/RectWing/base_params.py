@@ -66,4 +66,70 @@ def base_params(generalised_coords):
 
     # Factor to change the size of joint values
     p.eta = mf.ModelMatrix(value = [1]*(generalised_coords),symbols=sym.symbols(f'eta:{p.qs}'))
+
+    #Gust Velocity
+    p.w_g = mf.ModelSymbol(value = 0,string='w_g')
+
+    #FWT Stiffness
+    p.k_fwt = mf.ModelSymbol(value = 0, string = 'k_fwt')
+
+    # Aircraft Mass and spring constant
+    p.m_ac = mf.ModelSymbol(value = 100,string = 'm_ac')
+    p.k_ac = mf.ModelSymbol(value = 1e6, string = 'k_ac')
+
+    # Aircraft Yaw Angle
+    p.yaw = mf.ModelSymbol(value = 0, string = 'theta')
+    return p
+
+def JEC_params(generalised_coords):
+    p = base_params(generalised_coords)
+    p.rho.value = 1.225
+    p.s_t.value = 12
+    p.c.value = 1.8
+    p.EI.value = 9.77e6
+    p.GJ.value = 0.99e6
+    p.rho_t.value = 19.53
+    p.e_0.value = 0.08
+    p.e_1.value = 0  
+    p.ratio_fwt.value = 0.2
+
+    p.alpha_s.value = np.deg2rad(15)
+    p.eta.value = [1]*p.qs
+    p.m_ac.value = 1e6
+    p.k_ac.value = 1e6
+    p.k_fwt.value = 0
+    return p
+
+def WT_params(generalised_coords):
+    p = base_params(generalised_coords)
+    p.rho.value = 1.225
+    p.s_t.value = 1.345
+    p.c.value = 0.15
+    p.EI.value = 61
+    p.GJ.value = 200
+    p.rho_t.value = 10
+    p.e_0.value = 0
+    p.e_1.value = 0
+    p.ratio_fwt.value = 0.2
+    p.alpha_s.value = np.deg2rad(15)
+    p.eta.value = [1]*p.qs
+    p.m_ac.value = 1e6
+    p.k_ac.value = 1e6
+    return p
+
+def HALE_params(generalised_coords):
+    p = base_params(generalised_coords)
+    p.rho.value = 0.0889
+    p.s_t.value = 16
+    p.c.value = 1
+    p.EI.value = 2e4
+    p.GJ.value = 1e4
+    p.rho_t.value = 0.75
+    p.e_0.value = 0.25
+    p.e_1.value = 0  
+    p.ratio_fwt.value = 0.2
+    p.alpha_s.value = np.deg2rad(15)
+    p.eta.value = [1]*p.qs
+    p.m_ac.value = 1e6
+    p.k_ac.value = 1e6
     return p
