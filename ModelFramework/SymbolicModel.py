@@ -238,6 +238,7 @@ class SymbolicModel:
 
         return K_prime, M_prime
 
+
     @staticmethod
     def _jacobian(M,x):
         return sym.Matrix([[*M.diff(xi)] for xi in x]).T

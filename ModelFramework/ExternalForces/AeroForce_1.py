@@ -6,9 +6,12 @@ import sympy.physics.mechanics as me
 class AeroForce_1(ExternalForce):
 
     @classmethod
-    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,deltaAlpha,alpha_zero = 0):
+    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,deltaAlpha,alpha_zero = 0,w_g = 0, V= None):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
+
+        if V is None:
+            V = p.V
 
         # add z velocity due to motion
         BodyJacobian = cls._trigsimp(Transform.BodyJacobian(p.q))
@@ -16,15 +19,15 @@ class AeroForce_1(ExternalForce):
         v_z_eff = (BodyJacobian*p.qd)[2]
         
         # combine to get effective AoA
-        dAlpha = alpha_zero + rootAlpha + deltaAlpha - v_z_eff/p.V
+        dAlpha = alpha_zero + rootAlpha + deltaAlpha - v_z_eff/V + w_g/V
 
         # Calculate the lift force
-        dynamicPressure = sym.Rational(1,2)*p.rho*p.V**2
+        dynamicPressure = sym.Rational(1,2)*p.rho*V**2
         L_w = dynamicPressure*p.c*C_L*dAlpha
 
         # Calulate the pitching Moment
         M_w = L_w*e*p.c # Moment due to lift
-        M_w += dynamicPressure*p.c**2*(M_thetadot*alphadot*p.c/(sym.Integer(4)*p.V))
+        M_w += dynamicPressure*p.c**2*(M_thetadot*alphadot*p.c/(sym.Integer(4)*V))
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
         wrench_lift = sym.Matrix([0,0,L_w,0,0,0])

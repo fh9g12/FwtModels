@@ -30,6 +30,11 @@ class ModelSymbol(sym.Symbol,ModelValue):
         super().__init__(**kwarg)
     def __new__(cls,string,**kwarg):
         return super().__new__(cls,string)
+    def __eq__(self,other):
+        if isinstance(other,sym.Symbol):
+            return other.name == self.name
+    def __hash__(self):
+        return hash(sym.Symbol(self.name))
     
 class ModelMatrix(sym.Matrix,ModelValue):
     """
@@ -90,7 +95,7 @@ class ModelParameters:
                     if var._dependent:
                         sub_dependent_dict[var] = var.GetSub(t,x)
                     else:
-                        sub_dict[sym.Symbol(var.name)] = var.GetSub(t,x)
+                        sub_dict[var] = var.GetSub(t,x)
         # sub in values for dependent subsitutions
         for key,value in sub_dependent_dict.items():
             sub_dependent_dict[key] = value.subs(sub_dict)
