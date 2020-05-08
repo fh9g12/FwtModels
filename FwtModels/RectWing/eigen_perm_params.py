@@ -9,7 +9,7 @@ import sys,os
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 import ModelFramework as mf
 
-def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen=None):
+def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen=None,fp=None):
     """
     Method to generate the flutter results for a model for each permutation of the parms in param_perms:
     p - instance of Model Parameters
@@ -17,6 +17,8 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
     param_perms - a list of tuples, each tuple consists of (Symbol, list of values)
     calc_fixed_points - if True, will calc the fixed point for each permutation
     """
+    if fp is None:
+        fp = [0]*p.qs
 
     #get list of symbols to key in model
     variables = [k for k,v in vars_ls]
@@ -74,7 +76,7 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
                 #guess = [0]*p.qs if i==0 else qs[-1]
                 q = least_squares(lambda q,v:func_obj(q,values)[:,0],guess,method='dogbox',jac=func_jac_obj if jac else '2-point',args = (values,)).x
         else:
-            q=[0]*p.qs
+            q=fp
 
         qs.append(q)
         x = [0]*p.qs*2

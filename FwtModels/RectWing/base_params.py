@@ -79,6 +79,10 @@ def base_params(generalised_coords):
 
     # Aircraft Yaw Angle
     p.yaw = mf.ModelSymbol(value = 0, string = 'theta')
+
+    # Locked coast angle
+    p.theta_c = mf.ModelSymbol(value = 0, string = 'theta_c')
+
     return p
 
 def JEC_params(generalised_coords):
