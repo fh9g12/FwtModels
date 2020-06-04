@@ -84,7 +84,8 @@ def GenV2RectWing(b_modes,t_modes,aero_model_class,iwt=True,iwb=True,fwt_Iyy=Tru
                             e = p.e_1,
                             rootAlpha = p.alpha_1,
                             deltaAlpha = 0,
-                            alpha_zero = 0,
+                            alpha_zero = (p.y_1/p.s_1)*p.tau_1,
+                            #alpha_zero = 0,
                             w_g=sym.cos(p.alpha_1)*sym.cos(p.q[-1])*p.w_g,
                             V = p.V*sym.cos(p.yaw))
     else:
@@ -93,7 +94,8 @@ def GenV2RectWing(b_modes,t_modes,aero_model_class,iwt=True,iwb=True,fwt_Iyy=Tru
                             M_thetadot = p.M_thetadot,
                             e = p.e_1,
                             rootAlpha = p.alpha_1,
-                            alpha_zero = 0,
+                            alpha_zero = (p.y_1/p.s_1)*p.tau_1,
+                            #alpha_zero = 0,
                             stall_angle= 0 if not aero_model_class.stall else p.alpha_s,
                             c_d_max= 0 if not aero_model_class.drag else p.c_dmax,
                             w_g=sym.cos(p.alpha_1)*sym.cos(p.q[-1])*p.w_g,

@@ -2,7 +2,7 @@ import sympy as sym
 import numpy as np
 import pandas as pd
 from scipy.linalg import eig
-from scipy.optimize import fsolve,least_squares
+from scipy.optimize import fsolve,least_squares,root
 from sympy.physics.mechanics import msubs
 
 import sys,os
@@ -65,8 +65,7 @@ def fixed_point_finder(p,model,vars_ls,jac=True,fixed_point_gen=None,additional_
         ub[-1] = 2
         bounds = (lb,ub)
 
-        q = least_squares(lambda q,v:func_obj(q,values)[:,0],guess,bounds = bounds,x_scale='jac',
-                            method='dogbox',jac=func_jac_obj if jac else '2-point',args = (values,)).x 
+        q = root(lambda q,v:func_obj(q,values)[:,0],guess,jac=func_jac_obj if jac else None,args = (values,)).x 
         qs.append(q)
         additional = {k:v(q,values) for k,v in additional_func.items()}
         fixed_point_dataframe.append({**string_perms[i],**additional,'q':q})       

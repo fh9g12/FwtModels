@@ -70,6 +70,8 @@ def base_params(generalised_coords):
     #Gust Velocity
     p.w_g = mf.ModelSymbol(value = 0,string='w_g')
 
+    p.tau_1 = mf.ModelSymbol(value = 0,string="tau_1")# rate of geometric twist in the FWT
+
     #FWT Stiffness
     p.k_fwt = mf.ModelSymbol(value = 0, string = 'k_fwt')
 

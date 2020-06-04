@@ -2,7 +2,7 @@ import sympy as sym
 import numpy as np
 import pandas as pd
 from scipy.linalg import eig
-from scipy.optimize import fsolve,least_squares
+from scipy.optimize import fsolve,least_squares,root
 from sympy.physics.mechanics import msubs
 
 import sys,os
@@ -24,10 +24,8 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
     variables = [k for k,v in vars_ls]
 
     model_mini = model.msubs(p.GetSubs(0,p.fp,ignore=variables))
-    #model_lin = model_mini.linearise(p)
 
     # get eigen Matrices and turn into a function
-    #K,M = model_lin.GeneralEigenProblem(p)
     K,M = model_mini.GeneralEigenProblemLin(p)
 
     #get free body problem
@@ -49,8 +47,6 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
 
         if jac:
             func_jac_obj = sym.lambdify((p.q,variables),f.jacobian(p.q),"numpy")
-            #func_jac_obj_v0 = sym.lambdify((p.q,variables),f_v0.jacobian(p.q),"numpy")
-
 
     # Get all possible combinations of the variables
     perms = np.array(np.meshgrid(*[v for k,v in vars_ls ])).T.reshape(-1,len(vars_ls))
@@ -71,10 +67,12 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
                 guess[-1] = np.pi/2
                 q = fsolve(lambda q,v: func_obj_v0(q,v)[:,0],guess,factor = 1,args=(values,))  
             else:
-                guess = [0]*p.qs
-                guess[-1] =0.1
-                #guess = [0]*p.qs if i==0 else qs[-1]
-                q = least_squares(lambda q,v:func_obj(q,values)[:,0],guess,method='dogbox',jac=func_jac_obj if jac else '2-point',args = (values,)).x
+                if i>0:
+                    guess = qs[i-1]
+                else:
+                    guess = [0]*p.qs
+                    guess[-1] =0.1
+                q = root(lambda q,v:func_obj(q,values)[:,0],guess,jac=func_jac_obj if jac else None,args = (values,)).x         
         else:
             q=fp
 
