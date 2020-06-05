@@ -5,12 +5,15 @@ import sympy.physics.mechanics as me
 
 class AeroForce_4(ExternalForce):
     @classmethod
-    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,stall_angle=0.24,c_d_max = 1,w_g = 0,V=None):
+    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,stall_angle=0.24,c_d_max = 1,w_g = 0,V=None,c=None):
+
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
 
         if V is None:
             V = p.V
+        if c is None:
+            c=p.c
 
         # add z velocity due to motion
         BodyJacobian = cls._trigsimp(Transform.BodyJacobian(p.q))
@@ -35,11 +38,11 @@ class AeroForce_4(ExternalForce):
 
         c_n = c_l*sym.cos(ang)+c_d*sym.sin(ang)
 
-        F_n = dynamicPressure*p.c*c_n
+        F_n = dynamicPressure*c*c_n
 
         # Calulate the pitching Moment
-        M_w = F_n*e*p.c # Moment due to lift
-        M_w += dynamicPressure*p.c**2*(M_thetadot*alphadot*p.c/(sym.Integer(4)*V))
+        M_w = F_n*e*c # Moment due to lift
+        M_w += dynamicPressure*c**2*(M_thetadot*alphadot*c/(sym.Integer(4)*V))
 
         wrench = sym.Matrix([0,0,F_n,0,M_w,0])
 
