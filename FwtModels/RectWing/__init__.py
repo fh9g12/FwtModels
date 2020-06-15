@@ -1,2 +1,3 @@
-from .base_params import base_params
+from .base_params import base_params,JEC_params,WT_params,HALE_params
 from.eigen_perm_params import eigen_perm_params
+from .fixed_point_finder import fixed_point_finder

@@ -1,5 +1,6 @@
 import sympy as sym
 from sympy.abc import t
+import sympy.physics.mechanics as me
 
 def Vee(E):
     val = sym.Matrix([[0]]*6)
@@ -120,6 +121,9 @@ class HomogenousTransform:
 
     def subs(self,*args):  
         return HomogenousTransform(self.E.subs(*args))
+
+    def msubs(self,*args):  
+        return HomogenousTransform(me.msubs(self.E,*args))
 
     def Transform_point(self,p):
         p_l = list(p)

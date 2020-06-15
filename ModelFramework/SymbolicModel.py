@@ -5,7 +5,6 @@ from scipy.linalg import eig
 import sympy.physics.mechanics as me
 from sympy.physics.vector.printing import vpprint, vlatex
 from sympy.abc import x,y,t
-from .LambdifyExtension import msub
 from .helper_funcs import LineariseMatrix
 from .NumericModel import NumericModel
 import pickle
@@ -134,7 +133,10 @@ class SymbolicModel:
 
         # get the full EoM's for free vibration and linearise
         eom = self.M*p.qdd + self.f
-        eom_lin = LineariseMatrix(eom,p.x,p.fp)
+
+        x = [ j for i in range(len(p.q)) for j in [p.q[i],p.qd[i],p.qdd[i]]]
+        fp = [ j for i in range(len(p.q)) for j in [p.fp[::2][i],p.fp[1::2][i],0]]
+        eom_lin = LineariseMatrix(eom,x,fp)
 
         #extract linearised M
         M_lin = eom_lin.jacobian(p.qdd)
@@ -194,14 +196,52 @@ class SymbolicModel:
 
         _Q = self.ExtForces.Q() if self.ExtForces is not None else sym.Matrix([0]*p.qs)
 
-        f = (_Q-self.f)
+        #f = (_Q-self.f)
 
         K_prime = sym.zeros(p.qs*2)
         K_prime[:p.qs,-p.qs:] = sym.eye(p.qs)
-        K_prime[-p.qs:,:p.qs] = f.jacobian(p.q)
-        K_prime[-p.qs:,-p.qs:] = f.jacobian(p.qd)
+        K_prime[-p.qs:,:p.qs] = _Q.jacobian(p.q)-self.f.jacobian(p.q)
+        K_prime[-p.qs:,-p.qs:] = _Q.jacobian(p.qd)-self.f.jacobian(p.qd)
 
         return K_prime, M_prime
+
+    def GeneralEigenProblemLin(self,p):
+        """
+        gets the genralised eigan matrices for use in solving the frequencies / modes. 
+        They are of the form:
+            |   I   0   |       |    0    I   |
+        M=  |   0   M   |   ,K= |   E-C  D-B  |
+        such that scipy.linalg.eig(K,M) solves the problem 
+
+        THE SYSTEM MUST BE LINEARISED FOR THIS TO WORK
+        """
+        x = [ j for i in range(len(p.q)) for j in [p.q[i],p.qd[i],p.qdd[i]]]
+        fp = [ j for i in range(len(p.q)) for j in [p.fp[::2][i],p.fp[1::2][i],0]]
+
+        x_subs = {x[i]:fp[i] for i in range(len(x))}        
+
+        _Q = self.ExtForces.Q() if self.ExtForces is not None else sym.Matrix([0]*p.qs)
+
+        f = (_Q - self.f)
+
+        A = me.msubs(self.M,x_subs)
+        B = me.msubs(self._jacobian(f,p.qd),x_subs)
+        C = me.msubs(self._jacobian(f,p.q),x_subs)
+
+        M_prime = sym.eye(p.qs*2)
+        M_prime[-p.qs:,-p.qs:]=A
+
+        K_prime = sym.zeros(p.qs*2)
+        K_prime[:p.qs,-p.qs:] = sym.eye(p.qs)
+        K_prime[-p.qs:,:p.qs] = C
+        K_prime[-p.qs:,-p.qs:] = B
+
+        return K_prime, M_prime
+
+
+    @staticmethod
+    def _jacobian(M,x):
+        return sym.Matrix([[*M.diff(xi)] for xi in x]).T
 
     def to_file(self,filename):
         #Get string represtations

@@ -1,8 +1,8 @@
 import sympy as sym
 import numpy as np
 import sympy.physics.mechanics as me
+from sympy.abc import t
 import pandas as pd
-from .LambdifyExtension import msub
 
 def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
     # check q is the length of n+m
@@ -16,10 +16,10 @@ def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
     tau = alpha_r
 
     for i in range(0,n):
-        z = z + q[i]*y_s**(2+i)/factor[i]
+        z = z + q[i]*y_s**(2+i)*factor[i]
     for i in range(0,m):
         qi = i+n
-        tau = tau + q[qi]*y_s**(i+1)/factor[n+i]
+        tau = tau + q[qi]*y_s**(i+1)*factor[n+i]
     
     z -= tau*(x-x_f)
 
@@ -53,6 +53,7 @@ def LineariseMatrix(M,x,x_f):
     M_f = me.msubs(M,x_subs)
 
     # add a gradient term for each state about the fixed point
+    
     for i,xi in enumerate(x):
         M_f += me.msubs(M.diff(xi),x_subs)*(xi-x_f[i])
     return M_f

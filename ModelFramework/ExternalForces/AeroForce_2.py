@@ -1,12 +1,11 @@
 import sympy as sym
 from . import ExternalForce
-from ..LambdifyExtension import msub
 from ..helper_funcs import LineariseMatrix
+import sympy.physics.mechanics as me
 
 class AeroForce_2(ExternalForce):
-
     @classmethod
-    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0):
+    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,include_drag=False):
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
 
@@ -28,7 +27,15 @@ class AeroForce_2(ExternalForce):
 
         ## joint torques for lift are calculated in a frame aligned with the chordwise velocity direction
         ang = rootAlpha - v_z_eff/p.V
-        wrench = sym.Matrix([L_w*sym.sin(ang),0,L_w*sym.cos(ang),0,M_w,0])
+
+        if include_drag:
+            F_x = L_w*(sym.sin(ang) + sym.cos(ang)*p.ratio_DL)
+            F_z = L_w*(sym.cos(ang) - sym.sin(ang)*p.ratio_DL)
+        else:
+            F_x = L_w*sym.sin(ang)
+            F_z = L_w*sym.cos(ang)
+
+        wrench = sym.Matrix([F_x,0,F_z,0,M_w,0])
 
         _Q = BodyJacobian.T*wrench
 
@@ -49,6 +56,9 @@ class AeroForce_2(ExternalForce):
     
     def subs(self,*args):
         return AeroForce_2(self._Q.subs(*args),self.dAlpha.subs(*args))
+
+    def msubs(self,*args):
+        return AeroForce_2(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
 
     def integrate(self,*args):
         return AeroForce_2(self._Q.integrate(*args),self.dAlpha)
