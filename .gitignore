@@ -136,5 +136,8 @@ dmypy.json
 *.pkl
 *.DS_Store
 
+# icloud files
+*.icloud
+
 # pictures
 *.png

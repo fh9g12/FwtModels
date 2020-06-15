@@ -5,7 +5,7 @@ import sympy.physics.mechanics as me
 
 class AeroForce_4(ExternalForce):
     @classmethod
-    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,stall_angle=0.24,c_d_max = 1,w_g = 0,V=None,c=None):
+    def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,stall_angle=0.24,c_d_max = 1,w_g = 0,V=None,c=None,linear=False):
 
         p = FwtParams
         ## force per unit length will following theredosons pseado-steady theory
@@ -36,7 +36,10 @@ class AeroForce_4(ExternalForce):
 
         ang = rootAlpha - v_z_eff/V
 
-        c_n = c_l*sym.cos(ang)+c_d*sym.sin(ang)
+        if linear:
+            c_n = c_l
+        else:
+            c_n = c_l*sym.cos(ang)+c_d*sym.sin(ang)
 
         F_n = dynamicPressure*c*c_n
 
