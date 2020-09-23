@@ -3,7 +3,7 @@ from . import ExternalForce
 from ..helper_funcs import LineariseMatrix
 import sympy.physics.mechanics as me
 
-class AeroForce_4(ExternalForce):
+class AeroForce(ExternalForce):
     @classmethod
     def PerUnitSpan(cls,FwtParams,Transform,C_L,alphadot,M_thetadot,e,rootAlpha,alpha_zero = 0,stall_angle=0.24,c_d_max = 1,w_g = 0,V=None,c=None,linear=False):
 
@@ -64,16 +64,16 @@ class AeroForce_4(ExternalForce):
     def linearise(self,x,x_f):
         Q_lin = LineariseMatrix(self.Q(),x,x_f)
         dAlpha_lin = LineariseMatrix(self.dAlpha,x,x_f)
-        return AeroForce_4(Q_lin,dAlpha_lin)
+        return AeroForce(Q_lin,dAlpha_lin)
     
     def subs(self,*args):
-        return AeroForce_4(self._Q.subs(*args),self.dAlpha.subs(*args))
+        return AeroForce(self._Q.subs(*args),self.dAlpha.subs(*args))
 
     def msubs(self,*args):
-        return AeroForce_4(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
+        return AeroForce(me.msubs(self._Q,*args),me.msubs(self.dAlpha,*args))
 
     def integrate(self,*args):
-        return AeroForce_4(self._Q.integrate(*args),self.dAlpha)
+        return AeroForce(self._Q.integrate(*args),self.dAlpha)
 
 
 

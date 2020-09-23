@@ -69,9 +69,6 @@ class SymbolicModel:
 
         self.ExtForces = ExtForces
 
-    def CreateNumericModel(self,p):
-        return NumericModel(p,self.M,self.f,self.T,self.U,self.ExtForces)
-
     def cancel(self):
         """
         Creates a new instance of a Symbolic model with the cancel simplifcation applied

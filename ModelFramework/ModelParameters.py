@@ -93,9 +93,9 @@ class ModelParameters:
                         sub_dict[var[i]] = var.GetSub(t,x)[i]
                 else:
                     if var._dependent:
-                        sub_dependent_dict[var] = var.GetSub(t,x)
+                        sub_dependent_dict[sym.Symbol(var.name)] = var.GetSub(t,x)
                     else:
-                        sub_dict[var] = var.GetSub(t,x)
+                        sub_dict[sym.Symbol(var.name)] = var.GetSub(t,x)
         # sub in values for dependent subsitutions
         for key,value in sub_dependent_dict.items():
             sub_dependent_dict[key] = value.subs(sub_dict)

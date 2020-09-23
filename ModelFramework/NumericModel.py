@@ -29,6 +29,11 @@ class NumericModel:
         # kinetic energy function
         self.t_eqn = sym.lambdify((tup,p.x),T,"numpy")
 
+    @classmethod
+    def from_SymbolicModel(cls,p,sm):
+        return cls(p,sm.M,sm.f,sm.T,sm.U,sm.ExtForces)
+
+
     def deriv(self,t,x,tup):
         try:
             external = self.ExtForces(tup,x,t)
