@@ -49,10 +49,10 @@ class NumericModel:
 
     #calculate the total energy in the system
     def KineticEnergy(self,t,x,tup):
-        return self.t_eqn(*tup,x)
+        return self.t_eqn(tup,x)
 
     def PotentialEnergy(self,t,x,tup):
-        return self.u_eqn(*tup,x)
+        return self.u_eqn(tup,x)
 
     def Energy(self,t,x,tup):
         return self.KineticEnergy(t,x,tup) + self.PotentialEnergy(t,x,tup)

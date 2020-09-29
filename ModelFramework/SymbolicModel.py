@@ -246,8 +246,11 @@ class SymbolicModel:
         f_code = "def get_f():\n\t"+sym.printing.python(self.f).replace('\n','\n\t')+"\n\treturn e\n"
         T_code = "def get_T():\n\t"+sym.printing.python(self.T).replace('\n','\n\t')+"\n\treturn e\n"
         U_code = "def get_U():\n\t"+sym.printing.python(self.U).replace('\n','\n\t')+"\n\treturn e\n"
-        Q_code = "def get_Q():\n\t"+sym.printing.python(self.ExtForces.Q()).replace('\n','\n\t')+"\n\treturn e\n"
 
+        if self.ExtForces is not None:
+            Q_code = "def get_Q():\n\t"+sym.printing.python(self.ExtForces.Q()).replace('\n','\n\t')+"\n\treturn e\n"
+        else:
+            Q_code = "def get_Q():\n\t"+"return ImmutableDenseMatrix([[0]"+",[0]"*(self.M.shape[0]-1)+"])\n"
         #Combine and add import statements
         full_code = "from sympy import *\n"+M_code+f_code+T_code+U_code+Q_code
 
