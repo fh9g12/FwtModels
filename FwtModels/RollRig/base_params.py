@@ -4,7 +4,7 @@ import ModelFramework as mf
 import sympy as sym
 import numpy as np
 
-def base_params(Dofs = 3):
+def base_params(Dofs = 3,panels = 20):
     #2 Dof System
     p = mf.ModelParameters.DynamicModel(Dofs)
 
@@ -22,10 +22,12 @@ def base_params(Dofs = 3):
     p.m_f = mf.ModelSymbol(value = 0.038,string = 'm_f') # mass of each FWT
     p.m_l = mf.ModelSymbol(value = 0.0275,string = 'm_l') # mass of each FWT lock
 
+    p.eta_0 = mf.ModelSymbol(value = 0,string='eta_0')            # mass offset in y of main wing
+    p.eta_1 = mf.ModelSymbol(value = 0,string='eta_1')            # mass offset in z of main wing
+    p.eta_2 = mf.ModelSymbol(value = 0,string='eta_2')            # distance from hinge to FWT COM
+
     p.I_xx_f = mf.ModelSymbol (value = 0.1, string = 'I_xxf')
-    p.I_xx_f = sym.Rational(1,12)*p.m_f*p.s_f**2 # inertia of FWT (uniform bar)
     p.I_xx_w = mf.ModelSymbol (value = 0.1, string = 'I_xxw')
-    p.I_xx_w = sym.Rational(1,12)*p.m_w*p.s_w**2 # inertia of wing (uniform bar)
 
 
     # Attitude Parmas
@@ -47,9 +49,7 @@ def base_params(Dofs = 3):
     p.c_d_max = mf.ModelSymbol(value = 1,string='C_Dmax')
     p.a_0 = mf.ModelSymbol(value = 2*np.pi, string = 'a_0')   # C_L at the root
     p.a_1 = mf.ModelSymbol(value = 2*np.pi, string = 'a_1')   # C_L at the root
-    p.beta = mf.ModelSymbol(value = 2*np.pi, string = 'beta' )
-    p.eta_0 = mf.ModelSymbol(value = 0,string='eta_0')            # FWT Twist
-    p.eta_1 = mf.ModelSymbol(value = 0,string='eta_1')            # FWT Taper
+    p.beta = mf.ModelSymbol(value = 2*np.pi, string = 'beta' ) # Aileron Angle
 
     # fwt params
     p.Lambda = mf.ModelSymbol(value = np.deg2rad(10),string = 'Lambda') # flare angle
@@ -59,12 +59,13 @@ def base_params(Dofs = 3):
     #Gust Velocity
     p.w_g = mf.ModelSymbol(value = 0,string='w_g')
 
+    ## Numeric Model Constants
+    p.a = mf.ModelMatrix(value =[np.pi*2]*panels,symbols=sym.symbols(f'a:{panels}')) # The stationary point
+
 
     ## FWTD Structural Parameters
     p.y_0 = sym.Symbol('y_0')
     p.x_0 = sym.Symbol('x_0')
-
-    p.mode = mf.ModelSymbol(value ='Free',string='Mode')
 
     ## Numeric Model Constants
     p.fp = mf.ModelMatrix(value =[0]*p.qs*2,symbols=sym.symbols(f'qtilde:{p.qs*2}')) # The stationary point

@@ -1,2 +1,2 @@
 from .base_params import base_params
-from .utilities import GenRunData_StepTorque
+from .utilities import GenRunData_StepTorque,calc_coast_angle
