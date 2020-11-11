@@ -20,11 +20,6 @@ def base_params(Dofs = 3,panels = 20):
     # Mass Parameter
     p.m_w = mf.ModelSymbol(value = 0.22, string = 'm_w') # mass per unit span of inner wing
     p.m_f = mf.ModelSymbol(value = 0.038,string = 'm_f') # mass of each FWT
-    p.m_l = mf.ModelSymbol(value = 0.0275,string = 'm_l') # mass of each FWT lock
-
-    p.eta_0 = mf.ModelSymbol(value = 0,string='eta_0')            # mass offset in y of main wing
-    p.eta_1 = mf.ModelSymbol(value = 0,string='eta_1')            # mass offset in z of main wing
-    p.eta_2 = mf.ModelSymbol(value = 0,string='eta_2')            # distance from hinge to FWT COM
 
     p.I_xx_f = mf.ModelSymbol (value = 0.1, string = 'I_xxf')
     p.I_xx_w = mf.ModelSymbol (value = 0.1, string = 'I_xxw')
@@ -54,13 +49,26 @@ def base_params(Dofs = 3,panels = 20):
     # fwt params
     p.Lambda = mf.ModelSymbol(value = np.deg2rad(10),string = 'Lambda') # flare angle
     p.y_f = sym.Symbol('y_f')# spanwise location
-    p.y_w = sym.Symbol('y_w') # spanwise location
+    p.y_i = sym.Symbol('y_i') # spanwise location
 
     #Gust Velocity
     p.w_g = mf.ModelSymbol(value = 0,string='w_g')
 
+    #CLosed loop gains for roll control
+    p.p = mf.ModelSymbol(value = 1,string='p')
+
+    # Time constnat for torque
+    p.T = mf.ModelSymbol(value = 1,string='T')
+
     ## Numeric Model Constants
     p.a = mf.ModelMatrix(value =[np.pi*2]*panels,symbols=sym.symbols(f'a:{panels}')) # The stationary point
+
+    p.y_w = mf.ModelSymbol(value = 0,string = 'y_w') # y offset of wing CoM
+    p.z_w = mf.ModelSymbol(value = 0,string = 'z_w') # z offset of wing CoM
+    p.l_f = mf.ModelSymbol(value = 0,string = 'l_f') # moment arm of FWT
+
+    #integration constant
+    p.y_n = mf.ModelSymbol(value = 0,string = 'y_n') # integration constant
 
 
     ## FWTD Structural Parameters

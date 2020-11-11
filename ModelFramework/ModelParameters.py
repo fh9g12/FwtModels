@@ -6,9 +6,9 @@ class ModelValue:
     Base class to inject a value onto sympy classes
     """
     def __init__(self,value,**kwarg):
-        self.value = value
-        self._dependent = False
         super().__init__(**kwarg)
+        self.value = value
+        self._dependent = False      
     
     def __call__(self,t,x):
         return self._GetValue(t,x)
@@ -44,6 +44,15 @@ class ModelMatrix(sym.Matrix,ModelValue):
         super().__init__(**kwarg)
     def __new__(cls,symbols,**kwargs):
         return super().__new__(cls,symbols)
+    def __setattr__(self,name,value):
+        if name == "value":
+            if value is not None:
+                r, c = self.shape
+                if len(value) != r*c:
+                    raise ValueError(f'Model Matrix value length, {len(value)}, must be the same length as the symbolic matrix, {self.shape}.')
+        object.__setattr__(self, name, value)
+
+
 
 class ModelExpr(sym.Symbol,ModelValue):
     def __init__(self,string,func,**kwarg):

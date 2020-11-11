@@ -40,6 +40,8 @@ def base_params():
     p.clip_factor = mf.ModelSymbol(value = 100, string = 'mu') # roundedness of C_l Curve
     p.c_d_max = mf.ModelSymbol(value = 1,string='C_Dmax')
 
+    # Torque time constant
+    p.T = mf.ModelSymbol(value = 0.2,string='T')
 
     #Gust Velocity
     p.w_g = mf.ModelSymbol(value = 0,string='w_g')
