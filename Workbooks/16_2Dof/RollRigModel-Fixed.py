@@ -1,0 +1,66 @@
+from sympy import *
+def get_M():
+	I_xxw = Symbol('I_xxw')
+	m_w = Symbol('m_w')
+	y_w = Symbol('y_w')
+	z_w = Symbol('z_w')
+	e = MutableDenseMatrix([[I_xxw + m_w*y_w**2 + m_w*z_w**2]])
+	return e
+def get_f():
+	g = Symbol('g')
+	m_w = Symbol('m_w')
+	y_w = Symbol('y_w')
+	t = Symbol('t')
+	z_w = Symbol('z_w')
+	q0 = Function('q0')
+	e = ImmutableDenseMatrix([[-g*m_w*(y_w*cos(q0(t)) - z_w*sin(q0(t)))]])
+	return e
+def get_T():
+	I_xxw = Symbol('I_xxw')
+	t = Symbol('t')
+	m_w = Symbol('m_w')
+	y_w = Symbol('y_w')
+	z_w = Symbol('z_w')
+	q0 = Function('q0')
+	e = I_xxw*Derivative(q0(t), t)**2/2 + m_w*y_w**2*Derivative(q0(t), t)**2/2 + m_w*z_w**2*Derivative(q0(t), t)**2/2
+	return e
+def get_U():
+	g = Symbol('g')
+	m_w = Symbol('m_w')
+	y_w = Symbol('y_w')
+	t = Symbol('t')
+	z_w = Symbol('z_w')
+	q0 = Function('q0')
+	e = g*m_w*(-y_w*sin(q0(t)) - z_w*cos(q0(t)))
+	return e
+def get_Q():
+	V = Symbol('V')
+	c = Symbol('c')
+	rho = Symbol('rho')
+	s = Symbol('s')
+	a0 = Symbol('a0')
+	sigma = Symbol('sigma')
+	alpha_c = Symbol('alpha_c')
+	t = Symbol('t')
+	a1 = Symbol('a1')
+	a10 = Symbol('a10')
+	a11 = Symbol('a11')
+	a12 = Symbol('a12')
+	a13 = Symbol('a13')
+	a14 = Symbol('a14')
+	a15 = Symbol('a15')
+	a16 = Symbol('a16')
+	a17 = Symbol('a17')
+	a18 = Symbol('a18')
+	a19 = Symbol('a19')
+	a2 = Symbol('a2')
+	a3 = Symbol('a3')
+	a4 = Symbol('a4')
+	a5 = Symbol('a5')
+	a6 = Symbol('a6')
+	a7 = Symbol('a7')
+	a8 = Symbol('a8')
+	a9 = Symbol('a9')
+	q0 = Function('q0')
+	e = ImmutableDenseMatrix([[19*V**2*c*rho*s**2*a0*(1 - sigma)**2*(alpha_c - 19*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + 17*V**2*c*rho*s**2*a1*(1 - sigma)**2*(alpha_c - 17*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - V**2*c*rho*s**2*a10*(1 - sigma)**2*(alpha_c + s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - 3*V**2*c*rho*s**2*a11*(1 - sigma)**2*(alpha_c + 3*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - V**2*c*rho*s**2*a12*(1 - sigma)**2*(alpha_c + s*(1 - sigma)*Derivative(q0(t), t)/(8*V))/320 - 7*V**2*c*rho*s**2*a13*(1 - sigma)**2*(alpha_c + 7*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - 9*V**2*c*rho*s**2*a14*(1 - sigma)**2*(alpha_c + 9*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - 11*V**2*c*rho*s**2*a15*(1 - sigma)**2*(alpha_c + 11*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - 13*V**2*c*rho*s**2*a16*(1 - sigma)**2*(alpha_c + 13*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - 3*V**2*c*rho*s**2*a17*(1 - sigma)**2*(alpha_c + 3*s*(1 - sigma)*Derivative(q0(t), t)/(8*V))/320 - 17*V**2*c*rho*s**2*a18*(1 - sigma)**2*(alpha_c + 17*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 - 19*V**2*c*rho*s**2*a19*(1 - sigma)**2*(alpha_c + 19*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + 3*V**2*c*rho*s**2*a2*(1 - sigma)**2*(alpha_c - 3*s*(1 - sigma)*Derivative(q0(t), t)/(8*V))/320 + 13*V**2*c*rho*s**2*a3*(1 - sigma)**2*(alpha_c - 13*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + 11*V**2*c*rho*s**2*a4*(1 - sigma)**2*(alpha_c - 11*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + 9*V**2*c*rho*s**2*a5*(1 - sigma)**2*(alpha_c - 9*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + 7*V**2*c*rho*s**2*a6*(1 - sigma)**2*(alpha_c - 7*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + V**2*c*rho*s**2*a7*(1 - sigma)**2*(alpha_c - s*(1 - sigma)*Derivative(q0(t), t)/(8*V))/320 + 3*V**2*c*rho*s**2*a8*(1 - sigma)**2*(alpha_c - 3*s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600 + V**2*c*rho*s**2*a9*(1 - sigma)**2*(alpha_c - s*(1 - sigma)*Derivative(q0(t), t)/(40*V))/1600]])
+	return e
