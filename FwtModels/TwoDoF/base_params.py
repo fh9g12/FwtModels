@@ -4,7 +4,7 @@ import ModelFramework as mf
 import sympy as sym
 import numpy as np
 
-def base_params():
+def base_params(panels = 10):
     #2 Dof System
     p = mf.ModelParameters.DynamicModel(2)
 
@@ -54,8 +54,8 @@ def base_params():
 
     ## Numeric Model Constants
     p.fp = mf.ModelMatrix(value =[0]*p.qs*2,symbols=sym.symbols(f'qtilde:{p.qs*2}')) # The stationary point
+    p.a = mf.ModelMatrix(value =[np.pi*2]*panels,symbols=sym.symbols(f'a:{panels}')) # The aero derivative on each panel
 
     ## FWT C_L 
     p.a_0 = mf.ModelSymbol(value = 2*np.pi,string = 'a_0')   # C_L at the root
-    p.a = p.a_0 - p.a_0/p.s*p.y_0                            # C_L distrobution
     return p
