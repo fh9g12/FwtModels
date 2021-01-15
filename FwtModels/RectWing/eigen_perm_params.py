@@ -9,7 +9,7 @@ import sys,os
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 import ModelFramework as mf
 
-def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen=None,fp=None):
+def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen=None,fp=None,sortby='F'):
     """
     Method to generate the flutter results for a model for each permutation of the parms in param_perms:
     p - instance of Model Parameters
@@ -84,7 +84,7 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
         else:
             evals, evecs = eig(*func(values,x))
 
-        jac_dat = mf.ExtractEigenValueData_list(evals,evecs,sortby='F')
+        jac_dat = mf.ExtractEigenValueData_list(evals,evecs,sortby=sortby)
         #create q and perm data to match size
         for j in range(len(jac_dat)):    
             flutdfv2.append({**jac_dat[j],**string_perms[i],'q':q})
