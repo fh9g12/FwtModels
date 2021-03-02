@@ -12,6 +12,7 @@ def base_params(panels = 10):
     p.c = mf.ModelSymbol(value = 0.15,string = 'c') # chord of wing
 
     p.m = mf.ModelSymbol(value = 1,string = 'm')      # mass of fwt
+    p.m_1 = mf.ModelSymbol(value = 1, string='m_1')   # mass of additional weight
     p.m_w = mf.ModelSymbol(value = 4,string = 'm_w')  # mass of inner wing
     p.s = mf.ModelSymbol(value = 1,string = 's')      # span of fwt
 
@@ -22,6 +23,7 @@ def base_params(panels = 10):
     p.I_xx = mf.ModelSymbol(value = 1,string = 'I_xx')
 
     p.l_com = mf.ModelSymbol(value = 0.5,string='l_com') # distance from Hinge to CoM
+    p.l_m = mf.ModelSymbol(value = 0.5,string='l_m') # distance from Hinge to extra weight
 
     p.Lambda = mf.ModelSymbol(value = np.deg2rad(10),string = 'Lambda') # flare angle
 

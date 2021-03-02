@@ -64,7 +64,7 @@ def eigen_perm_params(p,model,vars_ls,calc_fixed_points,jac=True,fixed_point_gen
         if calc_fixed_points:
             if string_perms[i]["V"] == 0:
                 guess = [0]*p.qs
-                guess[-1] = np.pi/2
+                guess[-1] = -np.pi/2
                 q = fsolve(lambda q,v: func_obj_v0(q,v)[:,0],guess,factor = 1,args=(values,))  
             else:
                 if i>0:
