@@ -63,6 +63,8 @@ class FlexiElement(BaseElement):
         PE += self.CalcGravitionalPE(p) if self._gravityPotential else sym.Integer(0)
         return PE
 
+    def CalcRDF(self,p):
+        return 0
 
 
 

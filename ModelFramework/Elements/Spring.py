@@ -9,4 +9,6 @@ class Spring(BaseElement):
         return 0
     def CalcPE(self,p):
         return sym.Rational(1,2)*self.__k*self.__z**2
+    def CalcRDF(self,p):
+        return 0
         

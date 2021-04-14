@@ -40,3 +40,6 @@ class RigidElement(BaseElement):
             return point[2]*self.M_e[0,0]*p.g
         else:
             return 0
+    
+    def CalcRDF(self,p):
+        return 0

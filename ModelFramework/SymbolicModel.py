@@ -31,28 +31,24 @@ class SymbolicModel:
         """
         p = FwtParams 
 
-        # Calc K.E
-        T = sym.Integer(0)
+        # Calc K.E, P.E and Rayleigh Dissaptive Function
+        T = U = D = sym.Integer(0)
         # add K.E for each Rigid Element
         for ele in Elements:
-            T_e = ele.CalcKE(p)
-            T = T + T_e
-
-        # calc P.E
-        U = sym.Integer(0)
-        # add K.E for each Rigid Element
-        for ele in Elements:
-            U_e = ele.CalcPE(p)
-            U = U + U_e
+            T += ele.CalcKE(p)
+            U += ele.CalcPE(p)
+            D += ele.CalcRDF(p)
 
         # calculate EoM
         Lag = sym.Matrix([T-U])
+        D = sym.Matrix([D])
         term_1 = Lag.jacobian(p.qd).diff(me.dynamicsymbols._t).T.expand()
         term_2 = Lag.jacobian(p.q).T
+        term_3 = D.jacobian(p.qd).T
 
         # Get Mass Matrix and 'internal' forcing term
         M = term_1.jacobian(p.qdd) # assuming all parts in term 1 contribute only to mass matrix
-        f = sym.expand(term_1-M*p.qdd) -term_2
+        f = sym.expand(term_1-M*p.qdd) - term_2 + term_3
         return cls(M,f,T,U,ExtForces)
 
 

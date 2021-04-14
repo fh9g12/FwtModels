@@ -39,7 +39,7 @@ class AeroForce(ExternalForce):
         if linear:
             c_n = c_l
         else:
-            c_n = c_l*sym.cos(ang)+c_d*sym.sin(ang)
+            c_n = c_l*sym.cos(ang)-c_d*sym.sin(ang)
 
         F_n = dynamicPressure*c*c_n
 

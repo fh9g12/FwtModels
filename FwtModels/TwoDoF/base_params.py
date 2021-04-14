@@ -4,9 +4,9 @@ import ModelFramework as mf
 import sympy as sym
 import numpy as np
 
-def base_params(panels = 10):
+def base_params(panels = 10,dofs=2):
     #2 Dof System
-    p = mf.ModelParameters.DynamicModel(2)
+    p = mf.ModelParameters.DynamicModel(dofs)
 
     ## Create some global parameters
     p.c = mf.ModelSymbol(value = 0.15,string = 'c') # chord of wing
@@ -18,6 +18,9 @@ def base_params(panels = 10):
 
     p.f_0 = mf.ModelSymbol(value = 2,string = 'f_0')  # the frequency of the first bending mode 
     p.k_w = mf.ModelSymbol(value = 2,string = 'k_w')  # Stiffness of the inner wing
+    p.c_w = mf.ModelSymbol(value = 2,string = 'c_w')  # Inner wing rotation coefficent
+    p.d_w = mf.ModelSymbol(value = 2, string='d_w') # Damping coefficent for inner wing
+    p.d_a = mf.ModelSymbol(value = 2, string='d_a') # Aero Damping coefficent for inner wing
     p.k_fwt = mf.ModelSymbol(value = 0,string = 'k_fwt')  # Stiffness of the folding wing tip
 
     p.I_xx = mf.ModelSymbol(value = 1,string = 'I_xx')
@@ -37,6 +40,7 @@ def base_params(panels = 10):
     p.alphadot_1 = mf.ModelSymbol(value = 0,string = 'alphadot_1')       # FWT alphadot
     p.clip_factor = mf.ModelSymbol(value = 100, string = 'mu') # roundedness of C_l Curve
     p.c_d_max = mf.ModelSymbol(value = 1,string='C_Dmax')
+
 
     #Gust Velocity
     p.w_g = mf.ModelSymbol(value = 0,string='w_g')
