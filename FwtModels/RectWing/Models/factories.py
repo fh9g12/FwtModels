@@ -5,9 +5,9 @@ import sys, os
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 
-import ModelFramework as mf
-import ModelFramework.Elements as ele
-import ModelFramework.ExternalForces as ef
+import moyra as ma
+import moyra.elemets as ele
+import moyra.forces as ef
 import FwtModels.RectWing as rw
 import sympy.physics.mechanics as me
 from enum import Enum
@@ -34,11 +34,11 @@ def GenV2RectWing(b_modes,t_modes,aero_model_class,iwt=True,iwb=True,fwt_Iyy=Tru
     p = rw.base_params(b_modes+t_modes+2)
 
     #get shape functions for main wing
-    z_0,tau_0 = mf.ShapeFunctions_BN_TM(b_modes,t_modes,p.q[1:-1],p.y_0,p.x_0,p.x_f0,0,factor=p.eta)
+    z_0,tau_0 = ma.ShapeFunctions_BN_TM(b_modes,t_modes,p.q[1:-1],p.y_0,p.x_0,p.x_f0,0,factor=p.eta)
     wing_bend = sym.atan(z_0.diff(p.y_0).subs({p.x_0:p.x_f0,p.y_0:p.s_0}))
 
     #define wrefernce frames
-    wing_root_frame = mf.HomogenousTransform().Translate(0,0,p.q[0]).R_y(p.alpha_r)
+    wing_root_frame = ma.HomogenousTransform().Translate(0,0,p.q[0]).R_y(p.alpha_r)
     wing_frame = wing_root_frame.Translate(p.x_0,p.y_0,z_0)
     wing_flexural_frame = wing_frame.msubs({p.x_0:p.x_f0})
 
@@ -114,7 +114,7 @@ def GenV2RectWing(b_modes,t_modes,aero_model_class,iwt=True,iwb=True,fwt_Iyy=Tru
 
     # Setup AoA of FWT to sub into generated equations
     if aero_model_class.aoa_model == AoAModel.GEM:
-        fwt_aoa = mf.GetAoA(p.alpha_r,p.yaw,p.Lambda, p.q[-1])
+        fwt_aoa = ma.GetAoA(p.alpha_r,p.yaw,p.Lambda, p.q[-1])
     elif aero_model_class.aoa_model == AoAModel.SAM:
         fwt_aoa = sym.atan(sym.sin(p.q[-1])*sym.sin(p.Lambda))+p.alpha_r*sym.cos(p.q[-1])
     elif aero_model_class.aoa_model == AoAModel.LIN:
@@ -133,7 +133,7 @@ def GenV2RectWing(b_modes,t_modes,aero_model_class,iwt=True,iwb=True,fwt_Iyy=Tru
     #Create Composite force
     CompositeForce = ef.CompositeForce([wing_AeroForces,fwt_AeroForces])
     # Create the SYmbolic Model
-    sm = mf.SymbolicModel.FromElementsAndForces(p,[ac_ele,inner_wing_ele,fwt_ele,fwt_spring_ele,ac_spring_ele],CompositeForce)
+    sm = ma.SymbolicModel.FromElementsAndForces(p,[ac_ele,inner_wing_ele,fwt_ele,fwt_spring_ele,ac_spring_ele],CompositeForce)
     return sm,p
 
 
@@ -141,10 +141,10 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_Iyy=False,fwt_ke_simp=
     p = rw.base_params(b_modes+t_modes+1)
 
     #get shape functions for main wing
-    z_0,tau_0 = mf.ShapeFunctions_BN_TM(b_modes,t_modes,p.q[:-1],p.y_0,p.x_0,p.x_f0,0,factor=p.eta)
+    z_0,tau_0 = ma.ShapeFunctions_BN_TM(b_modes,t_modes,p.q[:-1],p.y_0,p.x_0,p.x_f0,0,factor=p.eta)
 
     #define wrefernce frames
-    wing_root_frame = mf.HomogenousTransform().R_y(p.alpha_r)
+    wing_root_frame = ma.HomogenousTransform().R_y(p.alpha_r)
     wing_frame = wing_root_frame.Translate(p.x_0,p.y_0,z_0)
     wing_flexural_frame = wing_frame.msubs({p.x_0:p.x_f0})
 
@@ -223,7 +223,7 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_Iyy=False,fwt_ke_simp=
     fwt_AeroForces = ef.ExternalForce(Q)
 
     # Setup AoA of FWT
-    fwt_aoa = mf.GetAoA(p.alpha_r,0,p.Lambda,0 if not fwt_free else p.q[-1])
+    fwt_aoa = ma.GetAoA(p.alpha_r,0,p.Lambda,0 if not fwt_free else p.q[-1])
 
     if iwb:
         wing_bend = sym.atan(z_0.diff(p.y_0).subs({p.x_0:p.x_f0,p.y_0:p.s_0}))
@@ -238,7 +238,7 @@ def GenRectWingModel(b_modes,t_modes,fwt_free,iwt,iwb,fwt_Iyy=False,fwt_ke_simp=
     #Create Composite force
     CompositeForce = ef.CompositeForce([wing_AeroForces,fwt_AeroForces])
     # Create the SYmbolic Model
-    sm = mf.SymbolicModel.FromElementsAndForces(p,[inner_wing_ele,fwt_ele],CompositeForce)
+    sm = ma.SymbolicModel.FromElementsAndForces(p,[inner_wing_ele,fwt_ele],CompositeForce)
 
     return sm,p
 
@@ -248,9 +248,9 @@ def Gen2DofModel(fwt_free,fwt_frot,rot_AoA=True):
 
     #define wrefernce frames
     if rot_AoA:
-        fwt_root_frame = mf.HomogenousTransform().Translate(0,0,p.q[0]).R_y(p.alpha_r).R_x(-p.q[-1])
+        fwt_root_frame = ma.HomogenousTransform().Translate(0,0,p.q[0]).R_y(p.alpha_r).R_x(-p.q[-1])
     else:
-        fwt_root_frame = mf.HomogenousTransform().Translate(0,0,p.q[0]).R_x(-p.q[-1])
+        fwt_root_frame = ma.HomogenousTransform().Translate(0,0,p.q[0]).R_x(-p.q[-1])
     fwt_flexural_frame = fwt_root_frame.Translate(p.x_f1,p.y_1,0)
     fwt_com_frame = fwt_root_frame.Translate(p.c/2,p.s_1/2,0)
     
@@ -295,13 +295,13 @@ def Gen2DofModel(fwt_free,fwt_frot,rot_AoA=True):
     fwt_AeroForces = ef.ExternalForce(Q)
 
     # Setup AoA of FWT
-    fwt_aoa = mf.GetAoA(p.alpha_r,0,p.Lambda,0 if not fwt_free else p.q[-1])
+    fwt_aoa = ma.GetAoA(p.alpha_r,0,p.Lambda,0 if not fwt_free else p.q[-1])
 
     ## Sub in Aero Forces
     fwt_AeroForces = fwt_AeroForces.subs({p.alpha_1:fwt_aoa,p.alphadot_1:fwt_aoa.diff(t)})
 
     # Create the SYmbolic Model
-    sm = mf.SymbolicModel.FromElementsAndForces(p,[fwt_ele,spring_ele],fwt_AeroForces)
+    sm = ma.SymbolicModel.FromElementsAndForces(p,[fwt_ele,spring_ele],fwt_AeroForces)
 
     return sm,p
 

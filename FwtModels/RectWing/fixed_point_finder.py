@@ -7,7 +7,6 @@ from sympy.physics.mechanics import msubs
 
 import sys,os
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-import ModelFramework as mf
 
 def fixed_point_finder(p,model,vars_ls,jac=True,fixed_point_gen=None,additional_func = {}):
     """

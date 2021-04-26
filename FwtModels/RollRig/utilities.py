@@ -2,8 +2,8 @@ from .base_params import base_params
 
 import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-import ModelFramework as mf
-import ModelFramework.ExternalForces as ef
+import moyra as ma
+import moyra.forces as ef
 
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -23,11 +23,11 @@ def calc_coast_angle(filename, qs, ic, params, xNames=None, additional_cols={}):
         if string in p_vars:
             p_vars[string].value = value
     # Load the Model   
-    sm = mf.SymbolicModel.from_file(filename)
-    sm.ExtForces = ef.CompositeForce([sm.ExtForces, ef.CustomForce(None)])
+    sm = ma.SymbolicModel.from_file(filename)
+    sm.ExtForces = ef.CompositeForce([sm.ExtForces, ef.Customaorce(None)])
              
     # Create Numeric Model
-    nm = mf.NumericModel.from_SymbolicModel(p,sm)
+    nm = ma.NumericModel.from_SymbolicModel(p,sm)
     ext_f = nm.ExtForces.force_funcs[0]
 
     # Create Objetive Function
@@ -93,11 +93,11 @@ def GenRunData_StepTorque(filename, qs, ic, end_time, params,panels=20, calc_coa
         if string in p_vars:
             p_vars[string].value = value
     # Load the Model 
-    sm = mf.SymbolicModel.from_file(filename)
-    sm.ExtForces = ef.CompositeForce([sm.ExtForces, ef.CustomForce(None)])
+    sm = ma.SymbolicModel.from_file(filename)
+    sm.ExtForces = ef.CompositeForce([sm.ExtForces, ef.Customaorce(None)])
              
     # Create Numeric Model
-    nm = mf.NumericModel.from_SymbolicModel(p, sm)
+    nm = ma.NumericModel.from_SymbolicModel(p, sm)
     ext_f = nm.ExtForces.force_funcs[0]
     
     # calcualte coast angles
