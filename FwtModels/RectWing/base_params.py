@@ -5,8 +5,8 @@ import sympy as sym
 import numpy as np
 
 def base_params(generalised_coords):
-    p = ma.ModelParameters.DynamicModel(generalised_coords)
-
+    p = ma.DynamicModelParameters(generalised_coords)
+    
     ## Create some global parameters
     p.c = ma.ModelSymbol(value = 1.8,string = 'c') # chord of wing
     p.s_t = ma.ModelSymbol(value = 12,string = 's_t') # total semi-span of wing
@@ -62,10 +62,10 @@ def base_params(generalised_coords):
     p.alphadot_1 = ma.ModelSymbol(value = 0,string = 'alphadot_1')       # FWT alphadot
 
     ## Numeric Model Constants
-    p.fp = ma.ModelMatrix(value =[0]*p.qs*2,symbols=sym.symbols(f'qtilde:{p.qs*2}')) # The stationary point
+    p.fp = ma.ModelMatrix(value =[0]*p.qs*2,length=p.qs*2, string='qtilde') # The stationary point
 
     # Factor to change the size of joint values
-    p.eta = ma.ModelMatrix(value = [1]*(generalised_coords),symbols=sym.symbols(f'eta:{p.qs}'))
+    p.eta = ma.ModelMatrix(value = [1]*(generalised_coords),length=generalised_coords, string='eta')
 
     #Gust Velocity
     p.w_g = ma.ModelSymbol(value = 0,string='w_g')

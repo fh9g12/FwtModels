@@ -6,7 +6,7 @@ import numpy as np
 
 def base_params(panels = 10,dofs=2):
     #2 Dof System
-    p = ma.ModelParameters.DynamicModel(dofs)
+    p = ma.DynamicModelParameters(dofs)
 
     ## Create some global parameters
     p.c = ma.ModelSymbol(value = 0.15,string = 'c') # chord of wing
@@ -51,8 +51,8 @@ def base_params(panels = 10,dofs=2):
     p.x_0 = sym.Symbol('x_0')
 
     ## Numeric Model Constants
-    p.fp = ma.ModelMatrix(value =[0]*p.qs*2,symbols=sym.symbols(f'qtilde:{p.qs*2}')) # The stationary point
-    p.a = ma.ModelMatrix(value =[np.pi*2]*panels,symbols=sym.symbols(f'a:{panels}')) # The aero derivative on each panel
+    p.fp = ma.ModelMatrix(value =[0]*p.qs*2,length=p.qs*2, string='qtilde') # The stationary point
+    p.a = ma.ModelMatrix(value =[np.pi*2]*panels,length=panels, string='a') # The aero derivative on each panel
 
     ## FWT C_L 
     p.a_0 = ma.ModelSymbol(value = 2*np.pi,string = 'a_0')   # C_L at the root

@@ -6,7 +6,7 @@ import numpy as np
 
 def base_params(Dofs = 3,panels = 20):
     #2 Dof System
-    p = ma.ModelParameters.DynamicModel(Dofs)
+    p = ma.DynamicModelParameters(Dofs)
 
 
     #Geometry Parameters
@@ -21,8 +21,8 @@ def base_params(Dofs = 3,panels = 20):
     p.m_w = ma.ModelSymbol(value = 0.22, string = 'm_w') # mass per unit span of inner wing
     p.m_f = ma.ModelSymbol(value = 0.038,string = 'm_f') # mass of each FWT
 
-    p.I_xx_f = ma.ModelSymbol (value = 0.1, string = 'I_xxf')
-    p.I_xx_w = ma.ModelSymbol (value = 0.1, string = 'I_xxw')
+    p.I_xxf = ma.ModelSymbol (value = 0.1, string = 'I_xxf')
+    p.I_xxw = ma.ModelSymbol (value = 0.1, string = 'I_xxw')
 
 
     # Attitude Parmas
@@ -61,7 +61,7 @@ def base_params(Dofs = 3,panels = 20):
     p.T = ma.ModelSymbol(value = 1,string='T')
 
     ## Numeric Model Constants
-    p.a = ma.ModelMatrix(value =[np.pi*2]*panels,symbols=sym.symbols(f'a:{panels}')) # The stationary point
+    p.a = ma.ModelMatrix(value =[np.pi*2]*panels,length=panels, string='a') # The stationary point
 
     p.y_w = ma.ModelSymbol(value = 0,string = 'y_w') # y offset of wing CoM
     p.z_w = ma.ModelSymbol(value = 0,string = 'z_w') # z offset of wing CoM
@@ -76,5 +76,5 @@ def base_params(Dofs = 3,panels = 20):
     p.x_0 = sym.Symbol('x_0')
 
     ## Numeric Model Constants
-    p.fp = ma.ModelMatrix(value =[0]*p.qs*2,symbols=sym.symbols(f'qtilde:{p.qs*2}')) # The stationary point
+    p.fp = ma.ModelMatrix(value =[0]*p.qs*2,length=p.qs*2, string='qtilde') # The stationary point
     return p

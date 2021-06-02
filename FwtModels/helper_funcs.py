@@ -25,13 +25,13 @@ def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
 
     return z, tau
 
-def GetVh(alpha,beta,Lambda,theta):
+def GetVh(alpha,beta,Lambda,theta,mu):
     ## a/c to wind transform
     Ac_V = sym.rot_axis3(beta)*sym.rot_axis2(alpha)   # transform from a/c to the velocity frame 
     ## a/c to Hinge transform
     H_Ac = sym.trigsimp(sym.rot_axis3(-Lambda)*\
-                    sym.rot_axis1(theta)*  \
-                    sym.rot_axis3(Lambda))        # transform from a/c to the hinge frame 
+                    sym.rot_axis1(-theta)*  \
+                    sym.rot_axis3(Lambda)*sym.rot_axis1(-mu))         # transform from a/c to the hinge frame 
 
 
     H_V = sym.trigsimp(H_Ac*Ac_V) # transform from velocity to hinge reference frame
@@ -39,8 +39,8 @@ def GetVh(alpha,beta,Lambda,theta):
     # Velocity vector in velocity frame is of the form [v 0 0]
     Vv = sym.Matrix([1,0,0])
     # Transform into the hinge reference frame
-    return sym.simplify(H_V * Vv)
+    return (H_V * Vv)
 
-def GetAoA(alpha,beta,Lambda,theta):
-    Vh = GetVh(alpha,beta,Lambda,theta)
+def GetAoA(alpha,beta,Lambda,theta,mu):
+    Vh = GetVh(alpha,beta,Lambda,theta,mu)
     return sym.atan(Vh[2]/Vh[0])

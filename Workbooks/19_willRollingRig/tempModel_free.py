@@ -1,48 +1,61 @@
 from sympy import *
-def get_M():
-	I_xxf = Symbol('I_xxf')
-	I_xxw = Symbol('I_xxw')
-	l_f = Symbol('l_f')
-	m_f = Symbol('m_f')
-	s = Symbol('s')
-	sigma = Symbol('sigma')
-	m_w = Symbol('m_w')
-	y_w = Symbol('y_w')
-	z_w = Symbol('z_w')
-	e = ImmutableDenseMatrix([[2*I_xxf + I_xxw + 2*l_f**2*m_f - 2*l_f*m_f*s*sigma + 2*l_f*m_f*s + m_f*s**2*sigma**2/2 - m_f*s**2*sigma + m_f*s**2/2 + m_w*y_w**2 + m_w*z_w**2, -I_xxf - l_f**2*m_f + l_f*m_f*s*sigma/2 - l_f*m_f*s/2, I_xxf + l_f**2*m_f - l_f*m_f*s*sigma/2 + l_f*m_f*s/2], [-I_xxf - l_f**2*m_f + l_f*m_f*s*sigma/2 - l_f*m_f*s/2, I_xxf + l_f**2*m_f, 0], [I_xxf + l_f**2*m_f - l_f*m_f*s*sigma/2 + l_f*m_f*s/2, 0, I_xxf + l_f**2*m_f]])
-	return e
-def get_f():
-	g = Symbol('g')
-	m_w = Symbol('m_w')
-	y_w = Symbol('y_w')
-	z_w = Symbol('z_w')
+import moyra as ma
+
+def get_M(p):
 	t = Symbol('t')
-	l_f = Symbol('l_f')
-	m_f = Symbol('m_f')
-	q0 = Function('q0')
-	e = ImmutableDenseMatrix([[-g*m_w*y_w + g*m_w*z_w*q0(t)], [g*l_f*m_f], [g*l_f*m_f]])
+	e = MutableDenseMatrix([[2*p.I_xxf + p.I_xxw + 2*p.l_f**2*p.m_f - p.l_f*p.m_f*p.s*p.sigma*cos(p.q[1]) - p.l_f*p.m_f*p.s*p.sigma*cos(p.q[2]) + p.l_f*p.m_f*p.s*cos(p.q[1]) + p.l_f*p.m_f*p.s*cos(p.q[2]) + p.m_f*p.s**2*p.sigma**2/2 - p.m_f*p.s**2*p.sigma + p.m_f*p.s**2/2 + p.m_w*p.y_w**2 + p.m_w*p.z_w**2, -p.I_xxf - p.l_f**2*p.m_f + p.l_f*p.m_f*p.s*p.sigma*cos(p.q[1])/2 - p.l_f*p.m_f*p.s*cos(p.q[1])/2, -p.I_xxf - p.l_f**2*p.m_f + p.l_f*p.m_f*p.s*p.sigma*cos(p.q[2])/2 - p.l_f*p.m_f*p.s*cos(p.q[2])/2], [-p.I_xxf - p.l_f**2*p.m_f + p.l_f*p.m_f*p.s*p.sigma*cos(p.q[1])/2 - p.l_f*p.m_f*p.s*cos(p.q[1])/2, p.I_xxf + p.l_f**2*p.m_f, 0], [-p.I_xxf - p.l_f**2*p.m_f + p.l_f*p.m_f*p.s*p.sigma*cos(p.q[2])/2 - p.l_f*p.m_f*p.s*cos(p.q[2])/2, 0, p.I_xxf + p.l_f**2*p.m_f]])
 	return e
-def get_T():
-	e = 0
-	return e
-def get_U():
-	e = 0
-	return e
-def get_Q():
-	V = Symbol('V')
-	a0 = Symbol('a0')
-	alpha_c = Symbol('alpha_c')
-	c = Symbol('c')
-	rho = Symbol('rho')
-	s = Symbol('s')
-	sigma = Symbol('sigma')
+def get_f(p):
 	t = Symbol('t')
-	Lambda = Symbol('Lambda')
-	a3 = Symbol('a3')
-	a1 = Symbol('a1')
-	a2 = Symbol('a2')
-	q2 = Function('q2')
-	q1 = Function('q1')
-	q0 = Function('q0')
-	e = MutableDenseMatrix([[-V**2*a0*alpha_c*c*rho*s*sigma*(s*sigma/4 - s/2)/4 + V**2*a0*c*rho*s*sigma*(s*sigma/4 - s/2)*q2(t)*sin(Lambda)/4 - V**2*a3*alpha_c*c*rho*s*sigma*(-s*sigma/4 + s/2)/4 + V**2*a3*c*rho*s*sigma*(-s*sigma/4 + s/2)*q1(t)*sin(Lambda)/4 + V*a0*c*rho*s**2*sigma**2*(s*sigma/4 - s/2)*Derivative(q2(t), t)/16 + V*a3*c*rho*s**2*sigma**2*(-s*sigma/4 + s/2)*Derivative(q1(t), t)/16 + (-V*a0*c*rho*s*sigma*(s*sigma/4 - s/2)**2/4 - V*a1*c*rho*s**3*(1 - sigma)**3/64 - V*a2*c*rho*s**3*(1 - sigma)**3/64 - V*a3*c*rho*s*sigma*(-s*sigma/4 + s/2)**2/4)*Derivative(q0(t), t)], [V**2*a3*alpha_c*c*rho*s**2*sigma**2/16 - V**2*a3*c*rho*s**2*sigma**2*q1(t)*sin(Lambda)/16 - V*a3*c*rho*s**3*sigma**3*Derivative(q1(t), t)/64 + V*a3*c*rho*s**2*sigma**2*(-s*sigma/4 + s/2)*Derivative(q0(t), t)/16], [V**2*a0*alpha_c*c*rho*s**2*sigma**2/16 - V**2*a0*c*rho*s**2*sigma**2*q2(t)*sin(Lambda)/16 - V*a0*c*rho*s**3*sigma**3*Derivative(q2(t), t)/64 + V*a0*c*rho*s**2*sigma**2*(s*sigma/4 - s/2)*Derivative(q0(t), t)/16]])
+	e = ImmutableDenseMatrix([[-p.g*p.m_f*(-p.l_f*(-sin(p.q[0])*sin(p.q[1]) - cos(p.q[0])*cos(p.q[1])) - p.s*(p.sigma/2 + Rational(-1, 2))*cos(p.q[0])) - p.g*p.m_f*(-p.l_f*(sin(p.q[0])*sin(p.q[2]) + cos(p.q[0])*cos(p.q[2])) - p.s*(Rational(1, 2) - p.sigma/2)*cos(p.q[0])) - p.g*p.m_w*(p.y_w*cos(p.q[0]) - p.z_w*sin(p.q[0])) + p.l_f*p.m_f*p.s*p.sigma*sin(p.q[1])*p.qd[0]*p.qd[1] - p.l_f*p.m_f*p.s*p.sigma*sin(p.q[1])*p.qd[1]**2/2 + p.l_f*p.m_f*p.s*p.sigma*sin(p.q[2])*p.qd[0]*p.qd[2] - p.l_f*p.m_f*p.s*p.sigma*sin(p.q[2])*p.qd[2]**2/2 - p.l_f*p.m_f*p.s*sin(p.q[1])*p.qd[0]*p.qd[1] + p.l_f*p.m_f*p.s*sin(p.q[1])*p.qd[1]**2/2 - p.l_f*p.m_f*p.s*sin(p.q[2])*p.qd[0]*p.qd[2] + p.l_f*p.m_f*p.s*sin(p.q[2])*p.qd[2]**2/2], [p.g*p.l_f*p.m_f*(sin(p.q[0])*sin(p.q[1]) + cos(p.q[0])*cos(p.q[1])) - p.l_f*p.m_f*p.s*p.sigma*sin(p.q[1])*p.qd[0]**2/2 + p.l_f*p.m_f*p.s*sin(p.q[1])*p.qd[0]**2/2], [p.g*p.l_f*p.m_f*(-sin(p.q[0])*sin(p.q[2]) - cos(p.q[0])*cos(p.q[2])) - p.l_f*p.m_f*p.s*p.sigma*sin(p.q[2])*p.qd[0]**2/2 + p.l_f*p.m_f*p.s*sin(p.q[2])*p.qd[0]**2/2]])
 	return e
+def get_T(p):
+	t = Symbol('t')
+	e = p.I_xxf*p.qd[0]**2 - p.I_xxf*p.qd[0]*p.qd[1] - p.I_xxf*p.qd[0]*p.qd[2] + p.I_xxf*p.qd[1]**2/2 + p.I_xxf*p.qd[2]**2/2 + p.I_xxw*p.qd[0]**2/2 + p.l_f**2*p.m_f*p.qd[0]**2 - p.l_f**2*p.m_f*p.qd[0]*p.qd[1] - p.l_f**2*p.m_f*p.qd[0]*p.qd[2] + p.l_f**2*p.m_f*p.qd[1]**2/2 + p.l_f**2*p.m_f*p.qd[2]**2/2 - p.l_f*p.m_f*p.s*p.sigma*cos(p.q[1])*p.qd[0]**2/2 + p.l_f*p.m_f*p.s*p.sigma*cos(p.q[1])*p.qd[0]*p.qd[1]/2 - p.l_f*p.m_f*p.s*p.sigma*cos(p.q[2])*p.qd[0]**2/2 + p.l_f*p.m_f*p.s*p.sigma*cos(p.q[2])*p.qd[0]*p.qd[2]/2 + p.l_f*p.m_f*p.s*cos(p.q[1])*p.qd[0]**2/2 - p.l_f*p.m_f*p.s*cos(p.q[1])*p.qd[0]*p.qd[1]/2 + p.l_f*p.m_f*p.s*cos(p.q[2])*p.qd[0]**2/2 - p.l_f*p.m_f*p.s*cos(p.q[2])*p.qd[0]*p.qd[2]/2 + p.m_f*p.s**2*p.sigma**2*p.qd[0]**2/4 - p.m_f*p.s**2*p.sigma*p.qd[0]**2/2 + p.m_f*p.s**2*p.qd[0]**2/4 + p.m_w*p.y_w**2*p.qd[0]**2/2 + p.m_w*p.z_w**2*p.qd[0]**2/2
+	return e
+def get_U(p):
+	t = Symbol('t')
+	e = p.g*p.m_f*(p.l_f*(-sin(p.q[0])*cos(p.q[1]) + sin(p.q[1])*cos(p.q[0])) - p.s*(1 - p.sigma)*sin(p.q[0])/2) + p.g*p.m_f*(-p.l_f*(-sin(p.q[0])*cos(p.q[2]) + sin(p.q[2])*cos(p.q[0])) + p.s*(1 - p.sigma)*sin(p.q[0])/2) + p.g*p.m_w*(-p.y_w*sin(p.q[0]) - p.z_w*cos(p.q[0]))
+	return e
+def get_Q(p):
+	t = Symbol('t')
+	e = MutableDenseMatrix([[-p.a[0]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-19*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 19*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 19*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - p.a[1]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-17*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 17*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 17*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - 361*p.a[10]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 289*p.a[11]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 9*p.a[12]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/2560 - 169*p.a[13]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 121*p.a[14]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 81*p.a[15]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 49*p.a[16]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - p.a[17]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/2560 - 9*p.a[18]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - p.a[19]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - p.a[2]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-3*p.s*p.sigma*p.qd[2]/8 - (p.s*p.sigma*cos(p.q[2])/2 - 3*p.s*p.sigma/8 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 3*p.s*p.sigma/8 - p.s*cos(p.q[2])/2)/40 - p.a[20]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 9*p.a[21]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - p.a[22]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/2560 - 49*p.a[23]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 81*p.a[24]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 121*p.a[25]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 169*p.a[26]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 9*p.a[27]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/2560 - 289*p.a[28]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - 361*p.a[29]*p.V*p.c*p.rho*p.s**3*(1 - p.sigma)**3*p.qd[0]/64000 - p.a[3]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-13*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 13*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 13*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - p.a[30]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[31]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (3*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 3*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 3*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[32]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (p.s*p.sigma*p.qd[1]/8 - (-p.s*p.sigma*cos(p.q[1])/2 + p.s*p.sigma/8 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + p.s*p.sigma/8 + p.s*cos(p.q[1])/2)/40 - p.a[33]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (7*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 7*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 7*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[34]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (9*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 9*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 9*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[35]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (11*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 11*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 11*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[36]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (13*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 13*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 13*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[37]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (3*p.s*p.sigma*p.qd[1]/8 - (-p.s*p.sigma*cos(p.q[1])/2 + 3*p.s*p.sigma/8 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 3*p.s*p.sigma/8 + p.s*cos(p.q[1])/2)/40 - p.a[38]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (17*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 17*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 17*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[39]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (19*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 19*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)*(-p.s*p.sigma*cos(p.q[1])/2 + 19*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)/40 - p.a[4]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-11*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 11*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 11*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - p.a[5]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-9*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 9*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 9*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - p.a[6]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-7*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 7*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 7*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - p.a[7]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-p.s*p.sigma*p.qd[2]/8 - (p.s*p.sigma*cos(p.q[2])/2 - p.s*p.sigma/8 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - p.s*p.sigma/8 - p.s*cos(p.q[2])/2)/40 - p.a[8]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-3*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 3*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - 3*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40 - p.a[9]*p.V**2*p.c*p.rho*p.s*p.sigma*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)*(p.s*p.sigma*cos(p.q[2])/2 - p.s*p.sigma/40 - p.s*cos(p.q[2])/2)/40], [p.a[30]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + 3*p.a[31]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (3*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 3*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + p.a[32]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (p.s*p.sigma*p.qd[1]/8 - (-p.s*p.sigma*cos(p.q[1])/2 + p.s*p.sigma/8 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/320 + 7*p.a[33]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (7*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 7*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + 9*p.a[34]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (9*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 9*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + 11*p.a[35]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (11*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 11*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + 13*p.a[36]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (13*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 13*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + 3*p.a[37]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (3*p.s*p.sigma*p.qd[1]/8 - (-p.s*p.sigma*cos(p.q[1])/2 + 3*p.s*p.sigma/8 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/320 + 17*p.a[38]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (17*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 17*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600 + 19*p.a[39]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[1])) - (19*p.s*p.sigma*p.qd[1]/40 - (-p.s*p.sigma*cos(p.q[1])/2 + 19*p.s*p.sigma/40 + p.s*cos(p.q[1])/2)*p.qd[0])/p.V)/1600], [-19*p.a[0]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-19*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 19*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - 17*p.a[1]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-17*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 17*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - 3*p.a[2]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-3*p.s*p.sigma*p.qd[2]/8 - (p.s*p.sigma*cos(p.q[2])/2 - 3*p.s*p.sigma/8 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/320 - 13*p.a[3]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-13*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 13*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - 11*p.a[4]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-11*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 11*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - 9*p.a[5]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-9*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 9*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - 7*p.a[6]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-7*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 7*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - p.a[7]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-p.s*p.sigma*p.qd[2]/8 - (p.s*p.sigma*cos(p.q[2])/2 - p.s*p.sigma/8 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/320 - 3*p.a[8]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-3*p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - 3*p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600 - p.a[9]*p.V**2*p.c*p.rho*p.s**2*p.sigma**2*(p.alpha_c + atan(sin(p.Lambda)*tan(p.q[2])) - (-p.s*p.sigma*p.qd[2]/40 - (p.s*p.sigma*cos(p.q[2])/2 - p.s*p.sigma/40 - p.s*cos(p.q[2])/2)*p.qd[0])/p.V)/1600]])
+	return e
+def get_p():
+	p = ma.DynamicModelParameters(3)
+	p.c = ma.ModelSymbol(value=0.15, string='c')
+	p.s = ma.ModelSymbol(value=1, string='s')
+	p.sigma = ma.ModelSymbol(value=0.28, string='sigma')
+	p.m_w = ma.ModelSymbol(value=0.22, string='m_w')
+	p.m_f = ma.ModelSymbol(value=0.038, string='m_f')
+	p.I_xxf = ma.ModelSymbol(value=0.1, string='I_xxf')
+	p.I_xxw = ma.ModelSymbol(value=0.1, string='I_xxw')
+	p.rho = ma.ModelSymbol(value=1.225, string='rho')
+	p.V = ma.ModelSymbol(value=10, string='V')
+	p.g = ma.ModelSymbol(value=9.81, string='g')
+	p.alpha_r = ma.ModelSymbol(value=0.05235987755982989, string='alpha_r')
+	p.alpha_c = ma.ModelSymbol(value=0, string='alpha_c')
+	p.alpha_0 = ma.ModelSymbol(value=0, string='alpha_0')
+	p.alphadot_0 = ma.ModelSymbol(value=0, string='alphadot_0')
+	p.alpha_1 = ma.ModelSymbol(value=0, string='alpha_1')
+	p.alphadot_1 = ma.ModelSymbol(value=0, string='alphadot_1')
+	p.alpha_2 = ma.ModelSymbol(value=0, string='alpha_2')
+	p.alphadot_2 = ma.ModelSymbol(value=0, string='alphadot_2')
+	p.c_d_max = ma.ModelSymbol(value=1, string='C_Dmax')
+	p.a_0 = ma.ModelSymbol(value=6.283185307179586, string='a_0')
+	p.a_1 = ma.ModelSymbol(value=6.283185307179586, string='a_1')
+	p.beta = ma.ModelSymbol(value=6.283185307179586, string='beta')
+	p.Lambda = ma.ModelSymbol(value=0.17453292519943295, string='Lambda')
+	p.y_f = Symbol('y_f')
+	p.y_i = Symbol('y_i')
+	p.w_g = ma.ModelSymbol(value=0, string='w_g')
+	p.p = ma.ModelSymbol(value=1, string='p')
+	p.T = ma.ModelSymbol(value=1, string='T')
+	p.a = ma.ModelMatrix(value=[6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586], string='a', length=40)
+	p.y_w = ma.ModelSymbol(value=0, string='y_w')
+	p.z_w = ma.ModelSymbol(value=0, string='z_w')
+	p.l_f = ma.ModelSymbol(value=0, string='l_f')
+	p.y_n = ma.ModelSymbol(value=0, string='y_n')
+	p.y_0 = Symbol('y_0')
+	p.x_0 = Symbol('x_0')
+	return p

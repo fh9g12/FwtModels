@@ -36,7 +36,7 @@ def calc_coast_angle(filename, qs, ic, params, xNames=None, additional_cols={}):
         y[0] = roll
         y[1] = roll_rate
         y[index-1] = np.deg2rad(x[0])
-        res = nm.deriv(0, y, p.GetNumericTuple(y, 0))
+        res = nm.deriv(y, p.GetNumericTuple(y, 0),0)
         return res[index]**2
     
     # create function to find a good inital guess
@@ -50,7 +50,7 @@ def calc_coast_angle(filename, qs, ic, params, xNames=None, additional_cols={}):
     # calculate roll torque in coast postion
     if res_left.success and res_right.success:
         y = [ic[0],ic[1], np.deg2rad(res_left.x[0]), 0, np.deg2rad(res_right.x[0]), 0]
-        torq = nm.deriv(0, y, p.GetNumericTuple(y, 0))[1]
+        torq = nm.deriv(y, p.GetNumericTuple(y, 0),0)[1]
     else:
         torq = np.nan
 
@@ -73,7 +73,7 @@ def Calc_coast(numeric_model,p,ic):
         y[2] = x[0]
         y[4] = x[1]
         tup = p.GetNumericTuple(y, 0)  
-        forces = -numeric_model.f_func(tup,y)+numeric_model.ExtForces(tup,y,0)
+        forces = -numeric_model.f(y,tup)+numeric_model.ExtForces(y,tup,0)
         return forces[1][0]**2 + forces[2][0]**2
     # find left and right cruise angle
     res = minimize(objective_func, [0,0], args=(ic,))
@@ -87,14 +87,14 @@ def GenRunData_StepTorque(filename, qs, ic, end_time, params,panels=20, calc_coa
         xNames = [f'x{i}' for i in range(qs*2)]
         
     # Set the parameters
-    p = base_params(qs,panels=panels)
+    (sm,p) = ma.SymbolicModel.from_file(filename)
     p_vars = vars(p)
     for string, value in params.items():
         if string in p_vars:
             p_vars[string].value = value
     # Load the Model 
-    sm = ma.SymbolicModel.from_file(filename)
-    sm.ExtForces = ef.CompositeForce([sm.ExtForces, ef.Customaorce(None)])
+    
+    sm.ExtForces = ef.CompositeForce([sm.ExtForces, ef.CustomForce(None)])
              
     # Create Numeric Model
     nm = ma.NumericModel.from_SymbolicModel(p, sm)
@@ -102,12 +102,13 @@ def GenRunData_StepTorque(filename, qs, ic, end_time, params,panels=20, calc_coa
     
     # calcualte coast angles
     ic = Calc_coast(nm,p,ic) if calc_coast else ic
+    print(ic)
 
     # Create the Torque Force
     torque_period = p.T.value
     torque_max = -p.beta.value
 
-    def torque(tup, x, t):
+    def torque(x, tup, t):
         res = np.array([[0.]]*int(len(x)/2))
         if t<torque_period:
             res[0] = t/torque_period*torque_max
@@ -115,7 +116,8 @@ def GenRunData_StepTorque(filename, qs, ic, end_time, params,panels=20, calc_coa
             res[0] = torque_max          
         return res
 
-    def fold_limit(tup, x, t):
+    def fold_limit(x, tup, t):
+        
         res = np.array([[0.]]*int(len(x)/2))
         lim = np.deg2rad(120)
         res[1] = 0 if abs(x[2]) < lim else -(x[2]%lim)*0.3
@@ -125,11 +127,11 @@ def GenRunData_StepTorque(filename, qs, ic, end_time, params,panels=20, calc_coa
     if qs == 1:
         nm.ExtForces.force_funcs = [ext_f, torque]
     else:
-        nm.ExtForces.force_funcs = [ext_f, lambda tup,x,t: torque(tup,x,t)+fold_limit(tup,x,t)]
+        nm.ExtForces.force_funcs = [ext_f, lambda x,tup,t: torque(x,tup,t)+fold_limit(x,tup,t)]
     
     # Solve the problem
     t = np.linspace(0, end_time, (end_time*sample_freq)+1)
-    y_data = solve_ivp(lambda t, y: nm.deriv(t, y,p.GetNumericTuple(y, t)), (0, end_time), ic,t_eval = t,events = events)
+    y_data = solve_ivp(lambda t, y: nm.deriv(y,p.GetNumericTuple(y, t),t), (0, end_time), ic,t_eval = t,events = events)
     
     #interpolate to reduce t and y points
     
@@ -137,7 +139,7 @@ def GenRunData_StepTorque(filename, qs, ic, end_time, params,panels=20, calc_coa
     yi = y_data.y
 
     #generate torque data
-    tau = [torque(None, [0]*p.qs*2, i)[0][0] for i in t]
+    tau = [torque([0]*p.qs*2,None, i)[0][0] for i in t]
 
     #generate a dictionary of the x data
     q_data = [dict(zip(xNames, row)) for row in yi.T]

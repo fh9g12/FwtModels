@@ -1,63 +1,57 @@
 from sympy import *
-def get_M():
-	m = Symbol('m')
-	m_w = Symbol('m_w')
-	l_com = Symbol('l_com')
+import moyra as ma
+
+def get_M(p):
 	t = Symbol('t')
-	I_xx = Symbol('I_xx')
-	q1 = Function('q1')
-	e = MutableDenseMatrix([[m + m_w, -l_com*m*cos(q1(t))], [-l_com*m*cos(q1(t)), I_xx + l_com**2*m]])
+	e = MutableDenseMatrix([[p.m + p.m_w, -p.l_com*p.m*cos(p.q[1])], [-p.l_com*p.m*cos(p.q[1]), p.I_xx + p.l_com**2*p.m]])
 	return e
-def get_f():
-	g = Symbol('g')
-	m = Symbol('m')
-	m_w = Symbol('m_w')
-	k_w = Symbol('k_w')
+def get_f(p):
 	t = Symbol('t')
-	l_com = Symbol('l_com')
-	q0 = Function('q0')
-	q1 = Function('q1')
-	e = ImmutableDenseMatrix([[g*m + g*m_w + k_w*q0(t) + l_com*m*sin(q1(t))*Derivative(q1(t), t)**2], [-g*l_com*m*cos(q1(t))]])
+	e = ImmutableDenseMatrix([[p.g*p.m + p.g*p.m_w + p.k_w*p.q[0] + p.l_com*p.m*sin(p.q[1])*p.qd[1]**2], [-p.g*p.l_com*p.m*cos(p.q[1])]])
 	return e
-def get_T():
-	I_xx = Symbol('I_xx')
+def get_T(p):
 	t = Symbol('t')
-	l_com = Symbol('l_com')
-	m = Symbol('m')
-	m_w = Symbol('m_w')
-	q1 = Function('q1')
-	q0 = Function('q0')
-	e = I_xx*Derivative(q1(t), t)**2/2 + l_com**2*m*Derivative(q1(t), t)**2/2 - l_com*m*cos(q1(t))*Derivative(q0(t), t)*Derivative(q1(t), t) + m*Derivative(q0(t), t)**2/2 + m_w*Derivative(q0(t), t)**2/2
+	e = p.I_xx*p.qd[1]**2/2 + p.l_com**2*p.m*p.qd[1]**2/2 - p.l_com*p.m*cos(p.q[1])*p.qd[0]*p.qd[1] + p.m*p.qd[0]**2/2 + p.m_w*p.qd[0]**2/2
 	return e
-def get_U():
-	g = Symbol('g')
-	m = Symbol('m')
-	l_com = Symbol('l_com')
+def get_U(p):
 	t = Symbol('t')
-	m_w = Symbol('m_w')
-	k_w = Symbol('k_w')
-	q1 = Function('q1')
-	q0 = Function('q0')
-	e = g*m*(-l_com*sin(q1(t)) + q0(t)) + g*m_w*q0(t) + k_w*q0(t)**2/2
+	e = p.g*p.m*(-p.l_com*sin(p.q[1]) + p.q[0]) + p.g*p.m_w*p.q[0] + p.k_w*p.q[0]**2/2
 	return e
-def get_Q():
-	V = Symbol('V')
-	c = Symbol('c')
-	rho = Symbol('rho')
-	s = Symbol('s')
-	a0 = Symbol('a0')
-	alpha_1 = Symbol('alpha_1')
+def get_Q(p):
 	t = Symbol('t')
-	a1 = Symbol('a1')
-	a2 = Symbol('a2')
-	a3 = Symbol('a3')
-	a4 = Symbol('a4')
-	a5 = Symbol('a5')
-	a6 = Symbol('a6')
-	a7 = Symbol('a7')
-	a8 = Symbol('a8')
-	a9 = Symbol('a9')
-	q1 = Function('q1')
-	q0 = Function('q0')
-	e = MutableDenseMatrix([[V**2*c*rho*s*a0*(alpha_1 - (-s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a1*(alpha_1 - (-3*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a2*(alpha_1 - (-s*Derivative(q1(t), t)/4 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a3*(alpha_1 - (-7*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a4*(alpha_1 - (-9*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a5*(alpha_1 - (-11*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a6*(alpha_1 - (-13*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a7*(alpha_1 - (-3*s*Derivative(q1(t), t)/4 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a8*(alpha_1 - (-17*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20 + V**2*c*rho*s*a9*(alpha_1 - (-19*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)*cos(q1(t))/20], [-V**2*c*rho*s**2*a0*(alpha_1 - (-s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - 3*V**2*c*rho*s**2*a1*(alpha_1 - (-3*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - V**2*c*rho*s**2*a2*(alpha_1 - (-s*Derivative(q1(t), t)/4 + cos(q1(t))*Derivative(q0(t), t))/V)/80 - 7*V**2*c*rho*s**2*a3*(alpha_1 - (-7*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - 9*V**2*c*rho*s**2*a4*(alpha_1 - (-9*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - 11*V**2*c*rho*s**2*a5*(alpha_1 - (-11*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - 13*V**2*c*rho*s**2*a6*(alpha_1 - (-13*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - 3*V**2*c*rho*s**2*a7*(alpha_1 - (-3*s*Derivative(q1(t), t)/4 + cos(q1(t))*Derivative(q0(t), t))/V)/80 - 17*V**2*c*rho*s**2*a8*(alpha_1 - (-17*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400 - 19*V**2*c*rho*s**2*a9*(alpha_1 - (-19*s*Derivative(q1(t), t)/20 + cos(q1(t))*Derivative(q0(t), t))/V)/400]])
+	e = MutableDenseMatrix([[p.a[0]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[1]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-3*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[2]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-p.s*p.qd[1]/4 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[3]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-7*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[4]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-9*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[5]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-11*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[6]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-13*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[7]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-3*p.s*p.qd[1]/4 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[8]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-17*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20 + p.a[9]*p.V**2*p.c*p.rho*p.s*(p.alpha_1 - (-19*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)*cos(p.q[1])/20], [-p.a[0]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - 3*p.a[1]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-3*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - p.a[2]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-p.s*p.qd[1]/4 + cos(p.q[1])*p.qd[0])/p.V)/80 - 7*p.a[3]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-7*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - 9*p.a[4]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-9*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - 11*p.a[5]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-11*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - 13*p.a[6]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-13*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - 3*p.a[7]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-3*p.s*p.qd[1]/4 + cos(p.q[1])*p.qd[0])/p.V)/80 - 17*p.a[8]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-17*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400 - 19*p.a[9]*p.V**2*p.c*p.rho*p.s**2*(p.alpha_1 - (-19*p.s*p.qd[1]/20 + cos(p.q[1])*p.qd[0])/p.V)/400]])
 	return e
+def get_p():
+	p = ma.DynamicModelParameters(2)
+	p.c = ma.ModelSymbol(value=0.15, string='c')
+	p.m = ma.ModelSymbol(value=1, string='m')
+	p.m_1 = ma.ModelSymbol(value=1, string='m_1')
+	p.m_w = ma.ModelSymbol(value=4, string='m_w')
+	p.s = ma.ModelSymbol(value=1, string='s')
+	p.f_0 = ma.ModelSymbol(value=2, string='f_0')
+	p.k_w = ma.ModelSymbol(value=2, string='k_w')
+	p.c_w = ma.ModelSymbol(value=2, string='c_w')
+	p.d_w = ma.ModelSymbol(value=2, string='d_w')
+	p.d_a = ma.ModelSymbol(value=2, string='d_a')
+	p.k_fwt = ma.ModelSymbol(value=0, string='k_fwt')
+	p.I_xx = ma.ModelSymbol(value=1, string='I_xx')
+	p.l_com = ma.ModelSymbol(value=0.5, string='l_com')
+	p.l_m = ma.ModelSymbol(value=0.5, string='l_m')
+	p.Lambda = ma.ModelSymbol(value=0.17453292519943295, string='Lambda')
+	p.rho = ma.ModelSymbol(value=1.225, string='rho')
+	p.V = ma.ModelSymbol(value=10, string='V')
+	p.g = ma.ModelSymbol(value=9.81, string='g')
+	p.alpha_r = ma.ModelSymbol(value=0.05235987755982989, string='alpha_r')
+	p.M_thetadot = ma.ModelSymbol(value=1.2, string='M_thetadot')
+	p.alpha_1 = ma.ModelSymbol(value=0, string='alpha_1')
+	p.alphadot_1 = ma.ModelSymbol(value=0, string='alphadot_1')
+	p.clip_factor = ma.ModelSymbol(value=100, string='mu')
+	p.c_d_max = ma.ModelSymbol(value=1, string='C_Dmax')
+	p.w_g = ma.ModelSymbol(value=0, string='w_g')
+	p.y_0 = Symbol('y_0')
+	p.y_i = Symbol('y_i')
+	p.x_0 = Symbol('x_0')
+	p.fp = ma.ModelMatrix(value=[0, 0, 0, 0], string='qtilde', length=4)
+	p.a = ma.ModelMatrix(value=[6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586, 6.283185307179586], string='a', length=10)
+	p.a_0 = ma.ModelSymbol(value=6.283185307179586, string='a_0')
+	return p
