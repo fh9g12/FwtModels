@@ -1,8 +1,4 @@
 import sympy as sym
-import numpy as np
-import sympy.physics.mechanics as me
-from sympy.abc import t
-import pandas as pd
 
 def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
     # check q is the length of n+m
@@ -25,22 +21,25 @@ def ShapeFunctions_BN_TM(n,m,q,y_s,x,x_f,alpha_r,factor = 1):
 
     return z, tau
 
-def GetVh(alpha,beta,Lambda,theta,mu):
+def GetVh(alpha,beta,Lambda,theta,mu,simplify=True):
     ## a/c to wind transform
     Ac_V = sym.rot_axis3(beta)*sym.rot_axis2(alpha)   # transform from a/c to the velocity frame 
     ## a/c to Hinge transform
-    H_Ac = sym.trigsimp(sym.rot_axis3(-Lambda)*\
+    H_Ac = sym.rot_axis3(-Lambda)*\
                     sym.rot_axis1(-theta)*  \
-                    sym.rot_axis3(Lambda)*sym.rot_axis1(-mu))         # transform from a/c to the hinge frame 
+                    sym.rot_axis3(Lambda)*sym.rot_axis1(-mu)       # transform from a/c to the hinge frame 
+    if simplify:
+        H_Ac = sym.trigsimp(H_Ac)
 
-
-    H_V = sym.trigsimp(H_Ac*Ac_V) # transform from velocity to hinge reference frame
+    H_V = H_Ac*Ac_V
+    if simplify:
+        H_V = sym.trigsimp(H_V) # transform from velocity to hinge reference frame
 
     # Velocity vector in velocity frame is of the form [v 0 0]
     Vv = sym.Matrix([1,0,0])
     # Transform into the hinge reference frame
     return (H_V * Vv)
 
-def GetAoA(alpha,beta,Lambda,theta,mu):
-    Vh = GetVh(alpha,beta,Lambda,theta,mu)
+def GetAoA(alpha,beta,Lambda,theta,mu,simplify=True):
+    Vh = GetVh(alpha,beta,Lambda,theta,mu,simplify)
     return sym.atan(Vh[2]/Vh[0])
